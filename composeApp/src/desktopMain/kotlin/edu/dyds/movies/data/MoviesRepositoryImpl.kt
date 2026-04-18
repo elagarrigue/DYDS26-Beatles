@@ -10,7 +10,7 @@ class MoviesRepositoryImpl(
     private val remoteDataSource: RemoteDataSource,
 ) : MoviesRepository {
 
-    suspend fun getPopularMovies(): List<RemoteMovie> {
+    override suspend fun getPopularMovies(): List<RemoteMovie> {
         localDataSource.getPopularMovies()?.let { return it }
 
         return remoteDataSource.getPopularMovies().also { movies ->
@@ -18,8 +18,7 @@ class MoviesRepositoryImpl(
         }
     }
 
-    suspend fun getMovieDetails(id: Int): RemoteMovie? {
+    override suspend fun getMovieDetails(id: Int): RemoteMovie? {
         return localDataSource.getMovieDetails(id) ?: remoteDataSource.getMovieDetails(id)
     }
 }
-

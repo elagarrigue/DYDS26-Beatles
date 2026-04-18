@@ -1,17 +1,18 @@
-package edu.dyds.movies
+package edu.dyds.movies.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import edu.dyds.movies.data.MoviesRepositoryImpl
-import edu.dyds.movies.data.external.RemoteMovie
+import edu.dyds.movies.domain.entity.QualifiedMovie
+import edu.dyds.movies.domain.entity.Movie
+import edu.dyds.movies.domain.usecase.GetMovieDetailsUseCase
+import edu.dyds.movies.domain.usecase.GetPopularMoviesUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
-private const val MIN_VOTE_AVERAGE = 6.0
-
 class MoviesViewModel(
-    private val moviesRepository: MoviesRepositoryImpl,
+    private val getPopularMoviesUseCase: GetPopularMoviesUseCase,
+    private val getMovieDetailsUseCase: GetMovieDetailsUseCase,
 ) : ViewModel() {
 
     private val moviesStateMutableStateFlow = MutableStateFlow(MoviesUiState())
@@ -30,7 +31,7 @@ class MoviesViewModel(
             moviesStateMutableStateFlow.emit(
                 MoviesUiState(
                     isLoading = false,
-                    movies = getPopularMovies().sortAndMap()
+                    movies = getPopularMoviesUseCase.execute()
                 )
             )
         }
@@ -44,36 +45,11 @@ class MoviesViewModel(
             movieDetailStateMutableStateFlow.emit(
                 MovieDetailUiState(
                     isLoading = false,
-                    movie = getMovieDetails(id)?.toDomainMovie()
+                    movie = getMovieDetailsUseCase.execute(id)
                 )
             )
         }
     }
-
-    private suspend fun getPopularMovies() =
-        try {
-            moviesRepository.getPopularMovies()
-        } catch (e: Exception) {
-            emptyList()
-        }
-
-    private fun List<RemoteMovie>.sortAndMap(): List<QualifiedMovie> {
-        return this
-            .sortedByDescending { it.voteAverage }
-            .map {
-                QualifiedMovie(
-                    movie = it.toDomainMovie(),
-                    isGoodMovie = it.voteAverage >= MIN_VOTE_AVERAGE
-                )
-            }
-    }
-
-    private suspend fun getMovieDetails(id: Int) =
-        try {
-            moviesRepository.getMovieDetails(id)
-        } catch (e: Exception) {
-            null
-        }
 
 
     data class MoviesUiState(

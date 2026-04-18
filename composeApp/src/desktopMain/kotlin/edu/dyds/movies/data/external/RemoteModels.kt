@@ -1,6 +1,6 @@
 package edu.dyds.movies.data.external
 
-import edu.dyds.movies.Movie
+import edu.dyds.movies.domain.entity.Movie
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -40,4 +40,3 @@ data class RemoteMovie(
         )
     }
 }
-
