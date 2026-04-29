@@ -7,14 +7,14 @@ private const val MIN_VOTE_AVERAGE = 6.0
 
 class GetPopularMoviesUseCase(
     private val moviesRepository: MoviesRepository
-) {
-    suspend fun execute(): List<QualifiedMovie> {
+) : IGetPopularMoviesUseCase {
+    override suspend fun execute(): List<QualifiedMovie> {
         return try {
             moviesRepository.getPopularMovies()
                 .sortedByDescending { it.voteAverage }
                 .map {
                     QualifiedMovie(
-                        movie = it.toDomainMovie(),
+                        movie = it,
                         isGoodMovie = it.voteAverage >= MIN_VOTE_AVERAGE
                     )
                 }
@@ -23,3 +23,4 @@ class GetPopularMoviesUseCase(
         }
     }
 }
+

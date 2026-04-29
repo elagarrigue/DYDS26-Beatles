@@ -5,10 +5,10 @@ import edu.dyds.movies.domain.repository.MoviesRepository
 
 class GetMovieDetailsUseCase(
     private val moviesRepository: MoviesRepository
-) {
-    suspend fun execute(id: Int): Movie? {
+) : IGetMovieDetailsUseCase {
+    override suspend fun execute(id: Int): Movie? {
         return try {
-            moviesRepository.getMovieDetails(id)?.toDomainMovie()
+            moviesRepository.getMovieDetails(id)
         } catch (e: Exception) {
             null
         }

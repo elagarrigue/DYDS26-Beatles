@@ -2,12 +2,17 @@ package edu.dyds.movies.di
 
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
-import edu.dyds.movies.presentation.home.MoviesViewModel
 import edu.dyds.movies.data.MoviesRepositoryImpl
+import edu.dyds.movies.data.external.IRemoteDataSource
 import edu.dyds.movies.data.external.RemoteDataSource
+import edu.dyds.movies.data.local.ILocalDataSource
 import edu.dyds.movies.data.local.LocalDataSource
+import edu.dyds.movies.domain.usecase.IGetMovieDetailsUseCase
+import edu.dyds.movies.domain.usecase.IGetPopularMoviesUseCase
 import edu.dyds.movies.domain.usecase.GetMovieDetailsUseCase
 import edu.dyds.movies.domain.usecase.GetPopularMoviesUseCase
+import edu.dyds.movies.presentation.detail.DetailViewModel
+import edu.dyds.movies.presentation.home.HomeViewModel
 import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -38,24 +43,25 @@ object MoviesDependencyInjector {
             }
         }
 
-    private val localDataSource = LocalDataSource()
+    private val localDataSource: ILocalDataSource = LocalDataSource()
 
-    private val remoteDataSource = RemoteDataSource(tmdbHttpClient)
+    private val remoteDataSource: IRemoteDataSource = RemoteDataSource(tmdbHttpClient)
 
     private val moviesRepository = MoviesRepositoryImpl(
         localDataSource = localDataSource,
         remoteDataSource = remoteDataSource,
     )
 
-    private val getPopularMoviesUseCase = GetPopularMoviesUseCase(moviesRepository)
-    private val getMovieDetailsUseCase = GetMovieDetailsUseCase(moviesRepository)
-
-    // Se exponen para ser consumidos cuando estén implementados en Etapa 1.
-    val getPopularMoviesUseCaseProvider = { getPopularMoviesUseCase }
-    val getMovieDetailsUseCaseProvider = { getMovieDetailsUseCase }
+    private val getPopularMoviesUseCase: IGetPopularMoviesUseCase = GetPopularMoviesUseCase(moviesRepository)
+    private val getMovieDetailsUseCase: IGetMovieDetailsUseCase = GetMovieDetailsUseCase(moviesRepository)
 
     @Composable
-    fun getMoviesViewModel(): MoviesViewModel {
-        return viewModel { MoviesViewModel(getPopularMoviesUseCase, getMovieDetailsUseCase) }
+    fun getHomeViewModel(): HomeViewModel {
+        return viewModel { HomeViewModel(getPopularMoviesUseCase) }
+    }
+
+    @Composable
+    fun getDetailViewModel(): DetailViewModel {
+        return viewModel { DetailViewModel(getMovieDetailsUseCase) }
     }
 }

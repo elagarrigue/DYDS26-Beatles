@@ -1,5 +1,7 @@
 package edu.dyds.movies.data.external
 
+import edu.dyds.movies.data.local.LocalMovie
+import edu.dyds.movies.data.local.toDomainMovie
 import edu.dyds.movies.domain.entity.Movie
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -25,8 +27,8 @@ data class RemoteMovie(
     val popularity: Double,
     @SerialName("vote_average") val voteAverage: Double,
 ) {
-    fun toDomainMovie(): Movie {
-        return Movie(
+    fun toLocalMovie(): LocalMovie {
+        return LocalMovie(
             id = id,
             title = title,
             overview = overview,
@@ -38,5 +40,9 @@ data class RemoteMovie(
             popularity = popularity,
             voteAverage = voteAverage,
         )
+    }
+
+    fun toDomainMovie(): Movie {
+        return toLocalMovie().toDomainMovie()
     }
 }

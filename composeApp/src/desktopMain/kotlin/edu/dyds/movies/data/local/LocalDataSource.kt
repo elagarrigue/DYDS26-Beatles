@@ -1,21 +1,19 @@
 package edu.dyds.movies.data.local
 
-import edu.dyds.movies.data.external.RemoteMovie
+class LocalDataSource : ILocalDataSource {
 
-class LocalDataSource {
+    private val cacheMovies: MutableList<LocalMovie> = mutableListOf()
 
-    private val cacheMovies: MutableList<RemoteMovie> = mutableListOf()
-
-    fun getPopularMovies(): List<RemoteMovie>? {
+    override fun getPopularMovies(): List<LocalMovie>? {
         return cacheMovies.takeIf { it.isNotEmpty() }?.toList()
     }
 
-    fun savePopularMovies(movies: List<RemoteMovie>) {
+    override fun savePopularMovies(movies: List<LocalMovie>) {
         cacheMovies.clear()
         cacheMovies.addAll(movies)
     }
 
-    fun getMovieDetails(id: Int): RemoteMovie? {
+    override fun getMovieDetails(id: Int): LocalMovie? {
         return cacheMovies.firstOrNull { it.id == id }
     }
 }
