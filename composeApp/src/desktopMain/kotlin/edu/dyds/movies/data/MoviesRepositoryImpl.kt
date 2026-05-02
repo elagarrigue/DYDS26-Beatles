@@ -16,7 +16,6 @@ class MoviesRepositoryImpl(
         }
 
         return remoteDataSource.getPopularMovies().also { remoteMovies ->
-            // map remote movies directly to domain Movie and cache them
             localDataSource.savePopularMovies(remoteMovies.map { it.toDomainMovie() })
         }.map { it.toDomainMovie() }
     }
