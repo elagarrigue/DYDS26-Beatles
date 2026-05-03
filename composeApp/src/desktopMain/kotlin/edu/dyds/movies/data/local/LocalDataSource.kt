@@ -1,8 +1,10 @@
 package edu.dyds.movies.data.local
 
+import edu.dyds.movies.domain.entity.Movie
+
 interface LocalDataSource {
-    fun getPopularMovies(): List<LocalMovie>?
-    fun savePopularMovies(movies: List<LocalMovie>)
-    fun getMovieDetails(id: Int): LocalMovie?
+    fun getPopularMovies(): List<Movie>?
+    fun savePopularMovies(movies: List<Movie>)
+    fun getMovieDetails(id: Int): Movie?
 }
 
