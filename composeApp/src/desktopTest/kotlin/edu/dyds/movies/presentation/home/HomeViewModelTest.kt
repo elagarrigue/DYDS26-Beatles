@@ -88,12 +88,9 @@ class HomeViewModelTest {
         val useCase = GetPopularMoviesUseCaseFake { sampleMovies }
         val vm = HomeViewModel(useCase)
 
-        // act
         vm.getAllMovies()
-        // advance the test dispatcher until the launched coroutine completes
         advanceUntilIdle()
 
-        // assert final state
         val final = vm.moviesStateFlow.value
         assertEquals(false, final.isLoading)
         assertEquals(2, final.movies.size)
