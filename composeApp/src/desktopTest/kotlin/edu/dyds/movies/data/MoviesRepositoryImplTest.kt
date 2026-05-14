@@ -196,13 +196,15 @@ class MoviesRepositoryImplTest {
 
     @Test
     fun `get movie details should not append duplicate when movie already exists in popular cache`() = runTest {
-        val bed = createTestBed(localPopularMovies = listOf(movie(id = 1), movie(id = 99)))
+        val cachedMovies = listOf(movie(id = 1), movie(id = 99))
+        val bed = createTestBed(localPopularMovies = cachedMovies)
 
         val result = bed.repository.getMovieDetails(99)
 
         assertNotNull(result)
         assertEquals(99, result.id)
-        assertEquals(1, bed.remote.getMovieDetailsCalls)
+        assertEquals(cachedMovies[1], result)
+        assertEquals(0, bed.remote.getMovieDetailsCalls)
         assertEquals(0, bed.local.savePopularMoviesCalls)
     }
 

@@ -62,7 +62,7 @@ class LocalDataSourceSpy(
     override fun getMovieDetails(id: Int): Movie? {
         getMovieDetailsCalls++
         if (shouldThrowOnGetDetails) throw IllegalStateException("local getDetails error")
-        return detailsCache[id]
+        return detailsCache[id] ?: cachedPopularMovies?.firstOrNull { it.id == id }
     }
 
     fun hasNoDuplicateIds(): Boolean {
