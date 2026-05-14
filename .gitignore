@@ -89,6 +89,9 @@ local.properties
 # Root build directory
 /build/
 
+# PR report generated locally
+PR_ETAPA_2_DETAILED.md
+
 # Android Project System (IDE-generated, not needed for KMP desktop)
 .idea/AndroidProjectSystem.xml
 
