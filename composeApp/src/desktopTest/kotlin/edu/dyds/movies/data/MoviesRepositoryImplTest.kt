@@ -127,7 +127,7 @@ class MoviesRepositoryImplTest {
     }
 
     @Test
-    fun `get movie details should fetch remote and append to existing popular cache`() = runTest {
+    fun `get movie details should fetch remote and always merge into non-null popular cache`() = runTest {
         val cachedMovie = movie(id = 1)
         val bed = createTestBed(localPopularMovies = listOf(cachedMovie))
 
@@ -139,6 +139,20 @@ class MoviesRepositoryImplTest {
         assertEquals(1, bed.local.getPopularMoviesCalls)
         assertEquals(1, bed.local.savePopularMoviesCalls)
         assertEquals(listOf(1, 99), bed.local.lastSavedPopularMovies?.map { it.id })
+    }
+
+    @Test
+    fun `get movie details should cache remote movie when popular cache is empty list`() = runTest {
+        val bed = createTestBed(localPopularMovies = emptyList())
+
+        val result = bed.repository.getMovieDetails(77)
+
+        assertNotNull(result)
+        assertEquals(77, result.id)
+        assertEquals(1, bed.remote.getMovieDetailsCalls)
+        assertEquals(1, bed.local.getPopularMoviesCalls)
+        assertEquals(1, bed.local.savePopularMoviesCalls)
+        assertEquals(listOf(77), bed.local.lastSavedPopularMovies?.map { it.id })
     }
 
     @Test
