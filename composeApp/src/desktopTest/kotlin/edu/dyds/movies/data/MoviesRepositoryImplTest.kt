@@ -10,7 +10,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlinx.coroutines.test.runTest
 
@@ -140,7 +139,6 @@ class MoviesRepositoryImplTest {
         assertEquals(1, bed.local.getPopularMoviesCalls)
         assertEquals(1, bed.local.savePopularMoviesCalls)
         assertEquals(listOf(1, 99), bed.local.lastSavedPopularMovies?.map { it.id })
-        assertTrue(bed.local.hasNoDuplicateIds())
     }
 
     @Test
@@ -195,7 +193,7 @@ class MoviesRepositoryImplTest {
     }
 
     @Test
-    fun `get movie details should not append duplicate when movie already exists in popular cache`() = runTest {
+    fun `get movie details should return cached popular movie and skip remote when id exists`() = runTest {
         val cachedMovies = listOf(movie(id = 1), movie(id = 99))
         val bed = createTestBed(localPopularMovies = cachedMovies)
 

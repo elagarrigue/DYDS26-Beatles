@@ -4,6 +4,7 @@ import edu.dyds.movies.test.movie
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class LocalDataSourceImplTest {
 
@@ -71,6 +72,19 @@ class LocalDataSourceImplTest {
         val result = localDataSource.getMovieDetails(99)
 
         assertNull(result)
+    }
+
+    @Test
+    fun `details miss implies id is not present in popular cache`() {
+        val localDataSource = LocalDataSourceImpl()
+        localDataSource.savePopularMovies(listOf(movie(id = 1), movie(id = 2)))
+
+        val missingId = 99
+        val details = localDataSource.getMovieDetails(missingId)
+        val popular = localDataSource.getPopularMovies()
+
+        assertNull(details)
+        assertTrue(popular?.none { it.id == missingId } == true)
     }
 
     @Test
