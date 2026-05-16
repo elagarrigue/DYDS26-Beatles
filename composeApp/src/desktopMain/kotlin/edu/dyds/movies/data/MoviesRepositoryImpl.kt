@@ -24,9 +24,7 @@ class MoviesRepositoryImpl(
         return localDataSource.getMovieDetails(id) ?: run {
             remoteDataSource.getMovieDetails(id).also { remoteMovie ->
                 localDataSource.getPopularMovies()?.let { cachedMovies ->
-                    if (cachedMovies.none { it.id == remoteMovie.id }) {
-                        localDataSource.savePopularMovies(cachedMovies + remoteMovie.toDomainMovie())
-                    }
+                    localDataSource.savePopularMovies(cachedMovies + remoteMovie.toDomainMovie())
                 }
             }.toDomainMovie()
         }
