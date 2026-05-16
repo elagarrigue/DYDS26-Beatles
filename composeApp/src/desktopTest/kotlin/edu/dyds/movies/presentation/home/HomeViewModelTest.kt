@@ -7,8 +7,6 @@ import edu.dyds.movies.test.movie
 import edu.dyds.movies.test.resetMainDispatcher
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlin.test.AfterTest
 import kotlin.test.Test
@@ -39,7 +37,7 @@ class HomeViewModelTest {
 
     @Test
     fun `getAllMovies exposes loading while waiting for data and loaded data afterwards`() = runTest {
-        installMainDispatcher(testScheduler)
+        installMainDispatcher()
 
         val expectedMovies = listOf(
             QualifiedMovie(movie(id = 1, title = "A"), isGoodMovie = true),
@@ -50,12 +48,10 @@ class HomeViewModelTest {
         val viewModel = HomeViewModel(useCase)
 
         viewModel.getAllMovies()
-        runCurrent()
 
         assertTrue(viewModel.moviesStateFlow.value.isLoading)
 
         deferredMovies.complete(expectedMovies)
-        advanceUntilIdle()
 
         assertEquals(
             HomeViewModel.MoviesUiState(movies = expectedMovies),
@@ -65,19 +61,17 @@ class HomeViewModelTest {
 
     @Test
     fun `when use case returns empty list viewmodel exposes empty list`() = runTest {
-        installMainDispatcher(testScheduler)
+        installMainDispatcher()
 
         val deferredMovies = CompletableDeferred<List<QualifiedMovie>>()
         val useCase = GetPopularMoviesUseCaseFake { deferredMovies.await() }
         val viewModel = HomeViewModel(useCase)
 
         viewModel.getAllMovies()
-        runCurrent()
 
         assertTrue(viewModel.moviesStateFlow.value.isLoading)
 
         deferredMovies.complete(emptyList())
-        advanceUntilIdle()
 
         assertEquals(HomeViewModel.MoviesUiState(), viewModel.moviesStateFlow.value)
     }

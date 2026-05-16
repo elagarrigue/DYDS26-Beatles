@@ -7,8 +7,6 @@ import edu.dyds.movies.test.movie
 import edu.dyds.movies.test.resetMainDispatcher
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlin.test.AfterTest
 import kotlin.test.Test
@@ -42,7 +40,7 @@ class DetailViewModelTest {
 
     @Test
     fun `getMovieDetail exposes loading while waiting for data and loaded movie afterwards`() = runTest {
-        installMainDispatcher(testScheduler)
+        installMainDispatcher()
 
         val expectedMovie = movie(id = 10, title = "Title")
         val deferredMovie = CompletableDeferred<Movie?>()
@@ -52,12 +50,10 @@ class DetailViewModelTest {
         val viewModel = DetailViewModel(useCase)
 
         viewModel.getMovieDetail(expectedMovie.id)
-        runCurrent()
 
         assertTrue(viewModel.movieDetailStateFlow.value.isLoading)
 
         deferredMovie.complete(expectedMovie)
-        advanceUntilIdle()
 
         assertEquals(
             DetailViewModel.MovieDetailUiState(movie = expectedMovie),
@@ -67,19 +63,17 @@ class DetailViewModelTest {
 
     @Test
     fun `getMovieDetail with missing movie sets movie null`() = runTest {
-        installMainDispatcher(testScheduler)
+        installMainDispatcher()
 
         val deferredMovie = CompletableDeferred<Movie?>()
         val useCase = GetMovieDetailsUseCaseFake { deferredMovie.await() }
         val viewModel = DetailViewModel(useCase)
 
         viewModel.getMovieDetail(99)
-        runCurrent()
 
         assertTrue(viewModel.movieDetailStateFlow.value.isLoading)
 
         deferredMovie.complete(null)
-        advanceUntilIdle()
 
         assertEquals(DetailViewModel.MovieDetailUiState(), viewModel.movieDetailStateFlow.value)
     }
