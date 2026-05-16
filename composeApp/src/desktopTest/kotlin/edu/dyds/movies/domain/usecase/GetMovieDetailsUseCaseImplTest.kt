@@ -9,15 +9,16 @@ import kotlin.test.assertTrue
 class GetMovieDetailsUseCaseImplTest {
 
     @Test
-    fun `execute should delegate to repository with correct id`() = runTest {
+    fun `execute should delegate to repository with correct id and return null by default`() = runTest {
         val repositoryFake = MoviesRepositoryFake()
         val useCase = GetMovieDetailsUseCaseImpl(repositoryFake)
         val movieId = 42
 
-        useCase.execute(movieId)
+        val result = useCase.execute(movieId)
 
         assertTrue(repositoryFake.getMovieDetailsCalled, "Repository should be called")
         assertEquals(movieId, repositoryFake.capturedMovieId, "Should pass correct movie id to repository")
+        assertNull(result, "Result should be null by default when no movieDetailResult is set")
     }
 
     @Test
@@ -80,9 +81,3 @@ class GetMovieDetailsUseCaseImplTest {
         assertEquals(20, secondId, "Should capture second id correctly")
     }
 }
-
-
-
-
-
-

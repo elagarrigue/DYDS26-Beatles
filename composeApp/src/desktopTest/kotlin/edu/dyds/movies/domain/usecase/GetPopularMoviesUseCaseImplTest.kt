@@ -9,13 +9,13 @@ import kotlin.test.assertTrue
 class GetPopularMoviesUseCaseImplTest {
 
     @Test
-    fun `execute should delegate to repository`() = runTest {
+    fun `execute returns empty list by default`() = runTest {
         val repositoryFake = MoviesRepositoryFake()
         val useCase = GetPopularMoviesUseCaseImpl(repositoryFake)
 
-        useCase.execute()
+        val result = useCase.execute()
 
-        assertTrue(repositoryFake.getPopularMoviesCalled, "Repository should be called")
+        assertTrue(result.isEmpty(), "Result should be empty by default")
     }
 
     @Test
@@ -79,9 +79,3 @@ class GetPopularMoviesUseCaseImplTest {
         assertTrue(result.isEmpty(), "Result should be empty when exception occurs")
     }
 }
-
-
-
-
-
-

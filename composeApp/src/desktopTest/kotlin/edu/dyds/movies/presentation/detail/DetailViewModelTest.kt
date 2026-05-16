@@ -2,6 +2,7 @@ package edu.dyds.movies.presentation.detail
 
 import edu.dyds.movies.domain.entity.Movie
 import edu.dyds.movies.domain.usecase.GetMovieDetailsUseCase
+import edu.dyds.movies.presentation.fakes.FakeGetMovieDetailsUseCase // Importar el fake externo
 import edu.dyds.movies.test.installMainDispatcher
 import edu.dyds.movies.test.movie
 import edu.dyds.movies.test.resetMainDispatcher
@@ -18,12 +19,6 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalCoroutinesApi::class)
 class DetailViewModelTest {
 
-    private class GetMovieDetailsUseCaseFake(
-        private val behaviour: suspend (Int) -> Movie?,
-    ) : GetMovieDetailsUseCase {
-        override suspend fun execute(id: Int): Movie? = behaviour(id)
-    }
-
     @AfterTest
     fun tearDown() {
         resetMainDispatcher()
@@ -31,7 +26,7 @@ class DetailViewModelTest {
 
     @Test
     fun `initial state is not loading and movie null`() = runTest {
-        val useCase = GetMovieDetailsUseCaseFake { null }
+        val useCase = FakeGetMovieDetailsUseCase { null }
         val viewModel = DetailViewModel(useCase)
 
         assertFalse(viewModel.movieDetailStateFlow.value.isLoading)
@@ -44,7 +39,7 @@ class DetailViewModelTest {
 
         val expectedMovie = movie(id = 10, title = "Title")
         val deferredMovie = CompletableDeferred<Movie?>()
-        val useCase = GetMovieDetailsUseCaseFake { id ->
+        val useCase = FakeGetMovieDetailsUseCase { id ->
             if (id == expectedMovie.id) deferredMovie.await() else null
         }
         val viewModel = DetailViewModel(useCase)
@@ -66,7 +61,7 @@ class DetailViewModelTest {
         installMainDispatcher()
 
         val deferredMovie = CompletableDeferred<Movie?>()
-        val useCase = GetMovieDetailsUseCaseFake { deferredMovie.await() }
+        val useCase = FakeGetMovieDetailsUseCase { deferredMovie.await() }
         val viewModel = DetailViewModel(useCase)
 
         viewModel.getMovieDetail(99)
@@ -78,7 +73,3 @@ class DetailViewModelTest {
         assertEquals(DetailViewModel.MovieDetailUiState(), viewModel.movieDetailStateFlow.value)
     }
 }
-
-
-
-

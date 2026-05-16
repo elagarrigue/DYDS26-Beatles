@@ -1,7 +1,7 @@
 package edu.dyds.movies.presentation.home
 
 import edu.dyds.movies.domain.entity.QualifiedMovie
-import edu.dyds.movies.domain.usecase.GetPopularMoviesUseCase
+import edu.dyds.movies.presentation.fakes.FakeGetPopularMoviesUseCase // Importar el fake externo
 import edu.dyds.movies.test.installMainDispatcher
 import edu.dyds.movies.test.movie
 import edu.dyds.movies.test.resetMainDispatcher
@@ -16,12 +16,6 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModelTest {
 
-    private class GetPopularMoviesUseCaseFake(
-        private val behaviour: suspend () -> List<QualifiedMovie>,
-    ) : GetPopularMoviesUseCase {
-        override suspend fun execute(): List<QualifiedMovie> = behaviour()
-    }
-
     @AfterTest
     fun tearDown() {
         resetMainDispatcher()
@@ -29,7 +23,7 @@ class HomeViewModelTest {
 
     @Test
     fun `initial state is empty and not loading`() = runTest {
-        val useCase = GetPopularMoviesUseCaseFake { emptyList() }
+        val useCase = FakeGetPopularMoviesUseCase { emptyList() }
         val viewModel = HomeViewModel(useCase)
 
         assertEquals(HomeViewModel.MoviesUiState(), viewModel.moviesStateFlow.value)
@@ -44,7 +38,7 @@ class HomeViewModelTest {
             QualifiedMovie(movie(id = 2, title = "B"), isGoodMovie = false),
         )
         val deferredMovies = CompletableDeferred<List<QualifiedMovie>>()
-        val useCase = GetPopularMoviesUseCaseFake { deferredMovies.await() }
+        val useCase = FakeGetPopularMoviesUseCase { deferredMovies.await() }
         val viewModel = HomeViewModel(useCase)
 
         viewModel.getAllMovies()
@@ -64,7 +58,7 @@ class HomeViewModelTest {
         installMainDispatcher()
 
         val deferredMovies = CompletableDeferred<List<QualifiedMovie>>()
-        val useCase = GetPopularMoviesUseCaseFake { deferredMovies.await() }
+        val useCase = FakeGetPopularMoviesUseCase { deferredMovies.await() }
         val viewModel = HomeViewModel(useCase)
 
         viewModel.getAllMovies()
@@ -76,8 +70,3 @@ class HomeViewModelTest {
         assertEquals(HomeViewModel.MoviesUiState(), viewModel.moviesStateFlow.value)
     }
 }
-
-
-
-
-
