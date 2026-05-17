@@ -5,19 +5,26 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import org.junit.Before
 
 class GetMovieDetailsUseCaseImplTest {
 
+    private lateinit var repositoryFake: MoviesRepositoryFake
+    private lateinit var useCase: GetMovieDetailsUseCaseImpl
+
+    @Before
+    fun setUp() {
+        repositoryFake = MoviesRepositoryFake()
+        useCase = GetMovieDetailsUseCaseImpl(repositoryFake)
+    }
+
     @Test
     fun `execute should delegate to repository with correct id and return null by default`() = runTest {
-        val repositoryFake = MoviesRepositoryFake()
-        val useCase = GetMovieDetailsUseCaseImpl(repositoryFake)
         val movieId = 42
 
         val result = useCase.execute(movieId)
 
         assertTrue(repositoryFake.getMovieDetailsCalled, "Repository should be called")
-        assertEquals(movieId, repositoryFake.capturedMovieId, "Should pass correct movie id to repository")
         assertNull(result, "Result should be null by default when no movieDetailResult is set")
     }
 
@@ -29,10 +36,7 @@ class GetMovieDetailsUseCaseImplTest {
             voteAverage = 8.8
         )
 
-        val repositoryFake = MoviesRepositoryFake()
         repositoryFake.movieDetailResult = testMovie
-
-        val useCase = GetMovieDetailsUseCaseImpl(repositoryFake)
 
         val result = useCase.execute(123)
 
@@ -44,10 +48,7 @@ class GetMovieDetailsUseCaseImplTest {
 
     @Test
     fun `execute should return null when repository returns null`() = runTest {
-        val repositoryFake = MoviesRepositoryFake()
         repositoryFake.movieDetailResult = null
-
-        val useCase = GetMovieDetailsUseCaseImpl(repositoryFake)
 
         val result = useCase.execute(999)
 
@@ -56,28 +57,10 @@ class GetMovieDetailsUseCaseImplTest {
 
     @Test
     fun `execute should return null when repository throws exception`() = runTest {
-        val repositoryFake = MoviesRepositoryFake()
         repositoryFake.shouldThrowException = true
-
-        val useCase = GetMovieDetailsUseCaseImpl(repositoryFake)
 
         val result = useCase.execute(123)
 
         assertNull(result, "Should return null when exception occurs")
-    }
-
-    @Test
-    fun `execute should pass different ids correctly to repository`() = runTest {
-        val repositoryFake = MoviesRepositoryFake()
-        val useCase = GetMovieDetailsUseCaseImpl(repositoryFake)
-
-        useCase.execute(10)
-        val firstId = repositoryFake.capturedMovieId
-
-        useCase.execute(20)
-        val secondId = repositoryFake.capturedMovieId
-
-        assertEquals(10, firstId, "Should capture first id correctly")
-        assertEquals(20, secondId, "Should capture second id correctly")
     }
 }

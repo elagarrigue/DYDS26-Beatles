@@ -5,16 +5,22 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import org.junit.Before
 
 class GetPopularMoviesUseCaseImplTest {
 
+    private lateinit var repositoryFake: MoviesRepositoryFake
+    private lateinit var useCase: GetPopularMoviesUseCaseImpl
+
+    @Before
+    fun setUp() {
+        repositoryFake = MoviesRepositoryFake()
+        useCase = GetPopularMoviesUseCaseImpl(repositoryFake)
+    }
+
     @Test
-    fun `execute returns empty list by default`() = runTest {
-        val repositoryFake = MoviesRepositoryFake()
-        val useCase = GetPopularMoviesUseCaseImpl(repositoryFake)
-
+    fun `given repository with no movies, when execute, then returns empty list`() = runTest {
         val result = useCase.execute()
-
         assertTrue(result.isEmpty(), "Result should be empty by default")
     }
 
@@ -24,10 +30,7 @@ class GetPopularMoviesUseCaseImplTest {
         val movie2 = TestMovieFactory.createTestMovie(id = 2, voteAverage = 8.5)
         val movie3 = TestMovieFactory.createTestMovie(id = 3, voteAverage = 7.0)
 
-        val repositoryFake = MoviesRepositoryFake()
         repositoryFake.popularMoviesResult = listOf(movie1, movie2, movie3)
-
-        val useCase = GetPopularMoviesUseCaseImpl(repositoryFake)
 
         val result = useCase.execute()
 
@@ -42,10 +45,7 @@ class GetPopularMoviesUseCaseImplTest {
         val goodMovie = TestMovieFactory.createTestMovie(id = 1, voteAverage = 6.0)
         val badMovie = TestMovieFactory.createTestMovie(id = 2, voteAverage = 5.9)
 
-        val repositoryFake = MoviesRepositoryFake()
         repositoryFake.popularMoviesResult = listOf(goodMovie, badMovie)
-
-        val useCase = GetPopularMoviesUseCaseImpl(repositoryFake)
 
         val result = useCase.execute()
 
@@ -54,24 +54,8 @@ class GetPopularMoviesUseCaseImplTest {
     }
 
     @Test
-    fun `execute should return empty list when repository returns empty list`() = runTest {
-        val repositoryFake = MoviesRepositoryFake()
-        repositoryFake.popularMoviesResult = emptyList()
-
-        val useCase = GetPopularMoviesUseCaseImpl(repositoryFake)
-
-        val result = useCase.execute()
-
-        assertEquals(0, result.size, "Should return empty list")
-        assertTrue(result.isEmpty(), "Result should be empty")
-    }
-
-    @Test
     fun `execute should return empty list when repository throws exception`() = runTest {
-        val repositoryFake = MoviesRepositoryFake()
         repositoryFake.shouldThrowException = true
-
-        val useCase = GetPopularMoviesUseCaseImpl(repositoryFake)
 
         val result = useCase.execute()
 
