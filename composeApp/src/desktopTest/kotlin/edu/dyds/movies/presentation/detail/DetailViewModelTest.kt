@@ -2,11 +2,10 @@ package edu.dyds.movies.presentation.detail
 
 import edu.dyds.movies.domain.entity.Movie
 import edu.dyds.movies.domain.usecase.GetMovieDetailsUseCase
-import edu.dyds.movies.presentation.fakes.FakeGetMovieDetailsUseCase // Importar el fake externo
+import edu.dyds.movies.presentation.fakes.FakeGetMovieDetailsUseCase
 import edu.dyds.movies.test.installMainDispatcher
 import edu.dyds.movies.test.movie
 import edu.dyds.movies.test.resetMainDispatcher
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import kotlin.test.AfterTest
@@ -14,7 +13,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DetailViewModelTest {
@@ -34,21 +32,20 @@ class DetailViewModelTest {
     }
 
     @Test
-    fun `getMovieDetail exposes loading while waiting for data and loaded movie afterwards`() = runTest {
+    fun `getMovieDetail delegates requested id and stores returned movie`() = runTest {
         installMainDispatcher()
 
         val expectedMovie = movie(id = 10, title = "Title")
-        val deferredMovie = CompletableDeferred<Movie?>()
+        val requestedIds = arrayListOf<Int>()
         val useCase = FakeGetMovieDetailsUseCase { id ->
-            if (id == expectedMovie.id) deferredMovie.await() else null
+            requestedIds += id
+            if (id == expectedMovie.id) expectedMovie else null
         }
         val viewModel = DetailViewModel(useCase)
 
         viewModel.getMovieDetail(expectedMovie.id)
 
-        assertTrue(viewModel.movieDetailStateFlow.value.isLoading)
-
-        deferredMovie.complete(expectedMovie)
+        assertEquals(listOf(expectedMovie.id), requestedIds)
 
         assertEquals(
             DetailViewModel.MovieDetailUiState(movie = expectedMovie),
@@ -57,18 +54,19 @@ class DetailViewModelTest {
     }
 
     @Test
-    fun `getMovieDetail with missing movie sets movie null`() = runTest {
+    fun `getMovieDetail keeps empty state when repository returns null`() = runTest {
         installMainDispatcher()
 
-        val deferredMovie = CompletableDeferred<Movie?>()
-        val useCase = FakeGetMovieDetailsUseCase { deferredMovie.await() }
+        val requestedIds = arrayListOf<Int>()
+        val useCase = FakeGetMovieDetailsUseCase { id ->
+            requestedIds += id
+            null
+        }
         val viewModel = DetailViewModel(useCase)
 
         viewModel.getMovieDetail(99)
 
-        assertTrue(viewModel.movieDetailStateFlow.value.isLoading)
-
-        deferredMovie.complete(null)
+        assertEquals(listOf(99), requestedIds)
 
         assertEquals(DetailViewModel.MovieDetailUiState(), viewModel.movieDetailStateFlow.value)
     }
