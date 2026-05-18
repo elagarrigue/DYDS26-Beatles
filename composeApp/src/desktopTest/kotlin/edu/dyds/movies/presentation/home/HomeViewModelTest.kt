@@ -8,11 +8,17 @@ import edu.dyds.movies.test.resetMainDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModelTest {
+
+    @BeforeTest
+    fun setUp() {
+        installMainDispatcher()
+    }
 
     @AfterTest
     fun tearDown() {
@@ -29,7 +35,6 @@ class HomeViewModelTest {
 
     @Test
     fun `getAllMovies delegates once and stores returned movies`() = runTest {
-        installMainDispatcher()
 
         val expectedMovies = listOf(
             QualifiedMovie(movie(id = 1, title = "A"), isGoodMovie = true),
@@ -54,7 +59,6 @@ class HomeViewModelTest {
 
     @Test
     fun `getAllMovies keeps empty state when use case returns empty list`() = runTest {
-        installMainDispatcher()
 
         val calls = arrayListOf<String>()
         val useCase = FakeGetPopularMoviesUseCase {
