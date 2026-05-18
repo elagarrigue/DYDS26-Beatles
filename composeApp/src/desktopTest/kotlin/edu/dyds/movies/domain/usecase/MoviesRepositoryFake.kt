@@ -4,14 +4,11 @@ import edu.dyds.movies.domain.entity.Movie
 import edu.dyds.movies.domain.repository.MoviesRepository
 
 class MoviesRepositoryFake : MoviesRepository {
-    // Banderas para verificar delegación
     var getPopularMoviesCalled = false
     var getMovieDetailsCalled = false
 
-    // Capturador de parámetros
     var capturedMovieId: Int? = null
 
-    // Comportamiento configurable
     var shouldThrowException = false
     var movieDetailResult: Movie? = null
     var popularMoviesResult: List<Movie> = emptyList()
@@ -29,4 +26,3 @@ class MoviesRepositoryFake : MoviesRepository {
         return movieDetailResult
     }
 }
-
