@@ -56,34 +56,34 @@ class LocalDataSourceImplTest {
     }
 
     @Test
-    fun `get movie details should return movie by id when it exists in cache`() {
+    fun `get movie by title should return movie when it exists in cache`() {
         val targetMovie = movie(id = 42, title = "Expected movie")
         localDataSource.savePopularMovies(listOf(movie(id = 1), targetMovie, movie(id = 3)))
 
-        val result = localDataSource.getMovieDetails(42)
+        val result = localDataSource.getMovieByTitle("Expected movie")
 
         assertEquals(targetMovie, result)
     }
 
     @Test
-    fun `get movie details should return null when id does not exist in cache`() {
+    fun `get movie by title should return null when title does not exist in cache`() {
         localDataSource.savePopularMovies(listOf(movie(id = 1), movie(id = 2)))
 
-        val result = localDataSource.getMovieDetails(99)
+        val result = localDataSource.getMovieByTitle("NonExistentTitle")
 
         assertNull(result)
     }
 
     @Test
-    fun `details miss implies id is not present in popular cache`() {
-        localDataSource.savePopularMovies(listOf(movie(id = 1), movie(id = 2)))
+    fun `details miss implies title is not present in popular cache`() {
+        localDataSource.savePopularMovies(listOf(movie(id = 1), movie(id = 2, title = "Movie 2")))
 
-        val missingId = 99
-        val details = localDataSource.getMovieDetails(missingId)
+        val missingTitle = "NonExistentTitle"
+        val details = localDataSource.getMovieByTitle(missingTitle)
         val popular = localDataSource.getPopularMovies()
 
         assertNull(details)
-        assertTrue(popular?.none { it.id == missingId } == true)
+        assertTrue(popular?.none { it.title == missingTitle } == true)
     }
 
     @Test
@@ -93,8 +93,6 @@ class LocalDataSourceImplTest {
         localDataSource.savePopularMovies(emptyList())
 
         assertNull(localDataSource.getPopularMovies())
-        assertNull(localDataSource.getMovieDetails(1))
+        assertNull(localDataSource.getMovieByTitle("Movie 1"))
     }
 }
-
-

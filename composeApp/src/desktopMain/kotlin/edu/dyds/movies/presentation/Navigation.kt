@@ -19,7 +19,7 @@ private const val HOME = "home"
 
 private const val DETAIL = "detail"
 
-private const val MOVIE_ID = "movieId"
+private const val MOVIE_TITLE = "movieTitle" // Changed from MOVIE_ID
 
 @Composable
 fun Navigation() {
@@ -36,7 +36,7 @@ private fun NavGraphBuilder.homeDestination(navController: NavHostController) {
         HomeScreen(
             viewModel = getHomeViewModel(),
             onGoodMovieClick = {
-                navController.navigate("$DETAIL/${it.id}")
+                navController.navigate("$DETAIL/${it.title}") // Changed from it.id to it.title
             }
         )
     }
@@ -44,13 +44,13 @@ private fun NavGraphBuilder.homeDestination(navController: NavHostController) {
 
 private fun NavGraphBuilder.detailDestination(navController: NavHostController) {
     composable(
-        route = "$DETAIL/{$MOVIE_ID}",
-        arguments = listOf(navArgument(MOVIE_ID) { type = NavType.IntType })
+        route = "$DETAIL/{$MOVIE_TITLE}", // Changed from MOVIE_ID
+        arguments = listOf(navArgument(MOVIE_TITLE) { type = NavType.StringType }) // Changed from MOVIE_ID and IntType
     ) { backstackEntry ->
-        val movieId = backstackEntry.arguments?.getInt(MOVIE_ID)
+        val movieTitle = backstackEntry.arguments?.getString(MOVIE_TITLE) // Changed from movieId and getInt
 
-        movieId?.let {
-            DetailScreen(getDetailViewModel(), it, onBack = { navController.popBackStack() })
+        movieTitle?.let {
+            DetailScreen(getDetailViewModel(), it, onBack = { navController.popBackStack() }) // Changed to pass movieTitle (String)
         }
     }
 }

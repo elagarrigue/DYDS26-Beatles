@@ -20,14 +20,22 @@ class MoviesRepositoryImpl(
         }.map { it.toDomainMovie() }
     }
 
-    override suspend fun getMovieDetails(id: Int): Movie? {
-        return localDataSource.getMovieDetails(id) ?: run {
-            remoteDataSource.getMovieDetails(id).also { remoteMovie ->
-                localDataSource.getPopularMovies()?.let { cachedMovies ->
-                    localDataSource.savePopularMovies(cachedMovies + remoteMovie.toDomainMovie())
-                }
-            }.toDomainMovie()
+    override suspend fun getMovieByTitle(title: String): Movie? {
+        val localMovie = localDataSource.getMovieByTitle(title)
+        if (localMovie != null) {
+            return localMovie
+        }
+
+        return try {
+            val remoteMovie = remoteDataSource.getMovieByTitle(title)
+            val domainMovie = remoteMovie.toDomainMovie()
+            val cachedMovies = localDataSource.getPopularMovies()
+            if (cachedMovies != null) {
+                localDataSource.savePopularMovies(cachedMovies + domainMovie)
+            }
+            domainMovie
+        } catch (e: Exception) {
+            throw e // Rethrow the exception
         }
     }
 }
-

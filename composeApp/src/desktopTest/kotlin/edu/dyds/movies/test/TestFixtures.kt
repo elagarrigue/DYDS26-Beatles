@@ -20,10 +20,10 @@ fun movie(id: Int, title: String = "Movie $id"): Movie {
     )
 }
 
-fun remoteMovie(id: Int): RemoteMovie {
+fun remoteMovie(id: Int, title: String = "Remote Movie $id"): RemoteMovie {
     return RemoteMovie(
         id = id,
-        title = "Remote Movie $id",
+        title = title,
         overview = "Remote overview $id",
         releaseDate = "2026-01-01",
         posterPath = "/poster$id.jpg",
@@ -38,12 +38,11 @@ fun remoteMovie(id: Int): RemoteMovie {
 class LocalDataSourceSpy(
     var cachedPopularMovies: List<Movie>? = null,
     private val shouldThrowOnGetPopular: Boolean = false,
-    private val shouldThrowOnGetDetails: Boolean = false,
-    private val detailsCache: Map<Int, Movie> = emptyMap(),
+    private val shouldThrowOnGetByTitle: Boolean = false,
 ) : LocalDataSource {
     var getPopularMoviesCalls = 0
     var savePopularMoviesCalls = 0
-    var getMovieDetailsCalls = 0
+    var getMovieByTitleCalls = 0
     var lastSavedPopularMovies: List<Movie>? = null
         private set
 
@@ -54,15 +53,16 @@ class LocalDataSourceSpy(
     }
 
     override fun savePopularMovies(movies: List<Movie>) {
+        println("savePopularMovies called!") // Added for debugging
         savePopularMoviesCalls++
         lastSavedPopularMovies = movies
         cachedPopularMovies = movies.takeIf { it.isNotEmpty() }
     }
 
-    override fun getMovieDetails(id: Int): Movie? {
-        getMovieDetailsCalls++
-        if (shouldThrowOnGetDetails) throw IllegalStateException("local getDetails error")
-        return detailsCache[id] ?: cachedPopularMovies?.firstOrNull { it.id == id }
+    override fun getMovieByTitle(title: String): Movie? {
+        getMovieByTitleCalls++
+        if (shouldThrowOnGetByTitle) throw IllegalStateException("local getByTitle error")
+        return cachedPopularMovies?.firstOrNull { it.title == title }
     }
 
     fun hasNoDuplicateIds(): Boolean {
@@ -73,12 +73,12 @@ class LocalDataSourceSpy(
 
 class RemoteDataSourceFake(
     private val popularMoviesProvider: () -> List<RemoteMovie> = { emptyList() },
-    private val movieDetailsProvider: (Int) -> RemoteMovie = { remoteMovie(it) },
+    private val movieByTitleProvider: (String) -> RemoteMovie = { remoteMovie(0, it) },
     private val shouldThrowOnPopular: Boolean = false,
-    private val shouldThrowOnDetails: Boolean = false,
+    private val shouldThrowOnByTitle: Boolean = false,
 ) : RemoteDataSource {
     var getPopularMoviesCalls = 0
-    var getMovieDetailsCalls = 0
+    var getMovieByTitleCalls = 0
 
     override suspend fun getPopularMovies(): List<RemoteMovie> {
         getPopularMoviesCalls++
@@ -86,12 +86,9 @@ class RemoteDataSourceFake(
         return popularMoviesProvider()
     }
 
-    override suspend fun getMovieDetails(id: Int): RemoteMovie {
-        getMovieDetailsCalls++
-        if (shouldThrowOnDetails) throw IllegalStateException("remote getDetails error")
-        return movieDetailsProvider(id)
+    override suspend fun getMovieByTitle(title: String): RemoteMovie {
+        getMovieByTitleCalls++
+        if (shouldThrowOnByTitle) throw IllegalStateException("remote getByTitle error")
+        return movieByTitleProvider(title)
     }
 }
-
-
-

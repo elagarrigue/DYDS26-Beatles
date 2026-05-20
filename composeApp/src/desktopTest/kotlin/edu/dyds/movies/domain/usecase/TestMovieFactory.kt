@@ -4,16 +4,16 @@ import edu.dyds.movies.domain.entity.Movie
 
 object TestMovieFactory {
     fun createTestMovie(
-        id: Int = 1,
+        id: Int = 0,
         title: String = "Test Movie",
-        overview: String = "Test overview",
-        releaseDate: String = "2024-01-01",
-        poster: String = "https://example.com/poster.jpg",
-        backdrop: String? = "https://example.com/backdrop.jpg",
-        originalTitle: String = "Test Movie",
+        overview: String = "Test Overview",
+        releaseDate: String = "2023-01-01",
+        poster: String = "",
+        backdrop: String? = null,
+        originalTitle: String = "Test Original Title",
         originalLanguage: String = "en",
-        popularity: Double = 100.0,
-        voteAverage: Double = 7.0
+        popularity: Double = 0.0,
+        voteAverage: Double = 0.0
     ): Movie {
         return Movie(
             id = id,
@@ -29,4 +29,3 @@ object TestMovieFactory {
         )
     }
 }
-

@@ -4,25 +4,22 @@ import edu.dyds.movies.domain.entity.Movie
 import edu.dyds.movies.domain.repository.MoviesRepository
 
 class MoviesRepositoryFake : MoviesRepository {
-    var getPopularMoviesCalled = false
-    var getMovieDetailsCalled = false
 
-    var capturedMovieId: Int? = null
-
-    var shouldThrowException = false
+    var getMovieByTitleCalled: Boolean = false
+    var capturedMovieTitle: String? = null
     var movieDetailResult: Movie? = null
-    var popularMoviesResult: List<Movie> = emptyList()
+    var shouldThrowException: Boolean = false
 
-    override suspend fun getPopularMovies(): List<Movie> {
-        getPopularMoviesCalled = true
-        if (shouldThrowException) throw Exception("Repository exception")
-        return popularMoviesResult
+    override suspend fun getMovieByTitle(title: String): Movie? {
+        getMovieByTitleCalled = true
+        capturedMovieTitle = title
+        if (shouldThrowException) {
+            throw Exception("Test exception")
+        }
+        return movieDetailResult
     }
 
-    override suspend fun getMovieDetails(id: Int): Movie? {
-        getMovieDetailsCalled = true
-        capturedMovieId = id
-        if (shouldThrowException) throw Exception("Repository exception")
-        return movieDetailResult
+    override suspend fun getPopularMovies(): List<Movie> {
+        TODO("Not yet implemented for this test")
     }
 }
