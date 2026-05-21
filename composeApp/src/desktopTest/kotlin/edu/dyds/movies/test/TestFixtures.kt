@@ -1,6 +1,7 @@
 package edu.dyds.movies.test
 
-import edu.dyds.movies.data.external.RemoteDataSource
+import edu.dyds.movies.data.external.DetailedMovieSource
+import edu.dyds.movies.data.external.PopularMoviesSource
 import edu.dyds.movies.data.external.RemoteMovie
 import edu.dyds.movies.data.local.LocalDataSource
 import edu.dyds.movies.domain.entity.Movie
@@ -53,7 +54,6 @@ class LocalDataSourceSpy(
     }
 
     override fun savePopularMovies(movies: List<Movie>) {
-        println("savePopularMovies called!") // Added for debugging
         savePopularMoviesCalls++
         lastSavedPopularMovies = movies
         cachedPopularMovies = movies.takeIf { it.isNotEmpty() }
@@ -71,12 +71,13 @@ class LocalDataSourceSpy(
     }
 }
 
-class RemoteDataSourceFake(
+class TMDBMoviesExternalSourceFake(
     private val popularMoviesProvider: () -> List<RemoteMovie> = { emptyList() },
     private val movieByTitleProvider: (String) -> RemoteMovie = { remoteMovie(0, it) },
     private val shouldThrowOnPopular: Boolean = false,
     private val shouldThrowOnByTitle: Boolean = false,
-) : RemoteDataSource {
+    private val shouldReturnEmptyResultsOnTitle: Boolean = false,
+) : PopularMoviesSource, DetailedMovieSource {
     var getPopularMoviesCalls = 0
     var getMovieByTitleCalls = 0
 
@@ -89,6 +90,7 @@ class RemoteDataSourceFake(
     override suspend fun getMovieByTitle(title: String): RemoteMovie {
         getMovieByTitleCalls++
         if (shouldThrowOnByTitle) throw IllegalStateException("remote getByTitle error")
+        if (shouldReturnEmptyResultsOnTitle) throw IllegalArgumentException("No movie found for title: $title")
         return movieByTitleProvider(title)
     }
 }

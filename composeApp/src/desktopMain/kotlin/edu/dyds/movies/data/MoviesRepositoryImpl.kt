@@ -1,13 +1,15 @@
 package edu.dyds.movies.data
 
-import edu.dyds.movies.data.external.RemoteDataSource
+import edu.dyds.movies.data.external.DetailedMovieSource
+import edu.dyds.movies.data.external.PopularMoviesSource
 import edu.dyds.movies.data.local.LocalDataSource
 import edu.dyds.movies.domain.entity.Movie
 import edu.dyds.movies.domain.repository.MoviesRepository
 
 class MoviesRepositoryImpl(
     private val localDataSource: LocalDataSource,
-    private val remoteDataSource: RemoteDataSource,
+    private val popularMoviesSource: PopularMoviesSource,
+    private val detailedMovieSource: DetailedMovieSource,
 ) : MoviesRepository {
 
     override suspend fun getPopularMovies(): List<Movie> {
@@ -15,7 +17,7 @@ class MoviesRepositoryImpl(
             return localMovies
         }
 
-        return remoteDataSource.getPopularMovies().also { remoteMovies ->
+        return popularMoviesSource.getPopularMovies().also { remoteMovies ->
             localDataSource.savePopularMovies(remoteMovies.map { it.toDomainMovie() })
         }.map { it.toDomainMovie() }
     }
@@ -26,16 +28,12 @@ class MoviesRepositoryImpl(
             return localMovie
         }
 
-        return try {
-            val remoteMovie = remoteDataSource.getMovieByTitle(title)
-            val domainMovie = remoteMovie.toDomainMovie()
-            val cachedMovies = localDataSource.getPopularMovies()
-            if (cachedMovies != null) {
-                localDataSource.savePopularMovies(cachedMovies + domainMovie)
-            }
-            domainMovie
-        } catch (e: Exception) {
-            throw e // Rethrow the exception
+        val remoteMovie = detailedMovieSource.getMovieByTitle(title)
+        val domainMovie = remoteMovie.toDomainMovie()
+        val cachedMovies = localDataSource.getPopularMovies()
+        if (cachedMovies != null) {
+            localDataSource.savePopularMovies(cachedMovies + domainMovie)
         }
+        return domainMovie
     }
 }

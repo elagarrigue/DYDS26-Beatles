@@ -3,7 +3,7 @@ package edu.dyds.movies.data
 import edu.dyds.movies.data.external.RemoteMovie
 import edu.dyds.movies.domain.entity.Movie
 import edu.dyds.movies.test.LocalDataSourceSpy
-import edu.dyds.movies.test.RemoteDataSourceFake
+import edu.dyds.movies.test.TMDBMoviesExternalSourceFake
 import edu.dyds.movies.test.movie
 import edu.dyds.movies.test.remoteMovie
 import kotlin.test.Test
@@ -18,7 +18,7 @@ class MoviesRepositoryImplTest {
     private data class TestBed(
         val repository: MoviesRepositoryImpl,
         val local: LocalDataSourceSpy,
-        val remote: RemoteDataSourceFake,
+        val tmdb: TMDBMoviesExternalSourceFake,
     )
 
     private fun createTestBed(
@@ -35,13 +35,13 @@ class MoviesRepositoryImplTest {
             shouldThrowOnGetPopular = shouldThrowOnLocalPopular,
             shouldThrowOnGetByTitle = shouldThrowOnLocalByTitle,
         )
-        val remote = RemoteDataSourceFake(
+        val tmdb = TMDBMoviesExternalSourceFake(
             popularMoviesProvider = { remotePopularMovies },
             movieByTitleProvider = remoteMovieByTitleProvider,
             shouldThrowOnPopular = shouldThrowOnRemotePopular,
             shouldThrowOnByTitle = shouldThrowOnRemoteByTitle,
         )
-        return TestBed(MoviesRepositoryImpl(local, remote), local, remote)
+        return TestBed(MoviesRepositoryImpl(local, tmdb, tmdb), local, tmdb)
     }
 
     @Test
@@ -52,7 +52,7 @@ class MoviesRepositoryImplTest {
         val result = bed.repository.getPopularMovies()
 
         assertEquals(cachedMovies, result)
-        assertEquals(0, bed.remote.getPopularMoviesCalls)
+        assertEquals(0, bed.tmdb.getPopularMoviesCalls)
         assertEquals(0, bed.local.savePopularMoviesCalls)
     }
 
@@ -63,7 +63,7 @@ class MoviesRepositoryImplTest {
         val result = bed.repository.getPopularMovies()
 
         assertEquals(emptyList(), result)
-        assertEquals(0, bed.remote.getPopularMoviesCalls)
+        assertEquals(0, bed.tmdb.getPopularMoviesCalls)
         assertEquals(0, bed.local.savePopularMoviesCalls)
     }
 
@@ -75,7 +75,7 @@ class MoviesRepositoryImplTest {
         val result = bed.repository.getPopularMovies()
 
         assertEquals(remoteMovies.map { it.toDomainMovie() }, result)
-        assertEquals(1, bed.remote.getPopularMoviesCalls)
+        assertEquals(1, bed.tmdb.getPopularMoviesCalls)
         assertEquals(1, bed.local.savePopularMoviesCalls)
         assertEquals(result, bed.local.lastSavedPopularMovies)
     }
@@ -87,7 +87,7 @@ class MoviesRepositoryImplTest {
         val result = bed.repository.getPopularMovies()
 
         assertEquals(emptyList(), result)
-        assertEquals(1, bed.remote.getPopularMoviesCalls)
+        assertEquals(1, bed.tmdb.getPopularMoviesCalls)
         assertEquals(1, bed.local.savePopularMoviesCalls)
         assertEquals(emptyList(), bed.local.lastSavedPopularMovies)
     }
@@ -99,7 +99,7 @@ class MoviesRepositoryImplTest {
         val error = assertFailsWith<IllegalStateException> { bed.repository.getPopularMovies() }
 
         assertTrue(error.message?.contains("local getPopular") == true)
-        assertEquals(0, bed.remote.getPopularMoviesCalls)
+        assertEquals(0, bed.tmdb.getPopularMoviesCalls)
         assertEquals(0, bed.local.savePopularMoviesCalls)
     }
 
@@ -119,7 +119,7 @@ class MoviesRepositoryImplTest {
         val result = bed.repository.getMovieByTitle("Expected movie")
 
         assertEquals(cachedMovie, result)
-        assertEquals(0, bed.remote.getMovieByTitleCalls)
+        assertEquals(0, bed.tmdb.getMovieByTitleCalls)
         assertEquals(1, bed.local.getMovieByTitleCalls)
         assertEquals(0, bed.local.savePopularMoviesCalls)
     }
@@ -134,7 +134,7 @@ class MoviesRepositoryImplTest {
 
         assertNotNull(result)
         assertEquals(targetTitle, result.title)
-        assertEquals(1, bed.remote.getMovieByTitleCalls)
+        assertEquals(1, bed.tmdb.getMovieByTitleCalls)
         assertEquals(1, bed.local.getMovieByTitleCalls)
         assertEquals(1, bed.local.savePopularMoviesCalls)
         assertEquals(listOf("Cached Movie", targetTitle), bed.local.lastSavedPopularMovies?.map { it.title })
@@ -149,7 +149,7 @@ class MoviesRepositoryImplTest {
 
         assertNotNull(result)
         assertEquals(targetTitle, result.title)
-        assertEquals(1, bed.remote.getMovieByTitleCalls)
+        assertEquals(1, bed.tmdb.getMovieByTitleCalls)
         assertEquals(1, bed.local.getMovieByTitleCalls)
         assertEquals(1, bed.local.savePopularMoviesCalls)
         assertEquals(listOf(targetTitle), bed.local.lastSavedPopularMovies?.map { it.title })
@@ -163,7 +163,7 @@ class MoviesRepositoryImplTest {
         val result = bed.repository.getMovieByTitle(targetTitle)
 
         assertNotNull(result)
-        assertEquals(1, bed.remote.getMovieByTitleCalls)
+        assertEquals(1, bed.tmdb.getMovieByTitleCalls)
         assertEquals(0, bed.local.savePopularMoviesCalls)
     }
 
@@ -203,7 +203,7 @@ class MoviesRepositoryImplTest {
             ),
             result,
         )
-        assertEquals(1, bed.remote.getMovieByTitleCalls)
+        assertEquals(1, bed.tmdb.getMovieByTitleCalls)
         assertEquals(0, bed.local.savePopularMoviesCalls)
     }
 
@@ -217,7 +217,7 @@ class MoviesRepositoryImplTest {
         assertNotNull(result)
         assertEquals("Movie 99", result.title)
         assertEquals(cachedMovies[1], result)
-        assertEquals(0, bed.remote.getMovieByTitleCalls)
+        assertEquals(0, bed.tmdb.getMovieByTitleCalls)
         assertEquals(1, bed.local.getMovieByTitleCalls)
         assertEquals(0, bed.local.savePopularMoviesCalls)
     }
@@ -227,7 +227,7 @@ class MoviesRepositoryImplTest {
         val bed = createTestBed(shouldThrowOnLocalByTitle = true)
 
         assertFailsWith<IllegalStateException> { bed.repository.getMovieByTitle("Any Movie") }
-        assertEquals(0, bed.remote.getMovieByTitleCalls)
+        assertEquals(0, bed.tmdb.getMovieByTitleCalls)
         assertEquals(0, bed.local.savePopularMoviesCalls)
     }
 
@@ -237,5 +237,15 @@ class MoviesRepositoryImplTest {
 
         assertFailsWith<IllegalStateException> { bed.repository.getMovieByTitle("Any Movie") }
         assertEquals(0, bed.local.savePopularMoviesCalls)
+    }
+
+    @Test
+    fun `get movie by title should propagate not found exception when remote returns empty results`() = runTest {
+        val local = LocalDataSourceSpy(cachedPopularMovies = null)
+        val tmdb = TMDBMoviesExternalSourceFake(shouldReturnEmptyResultsOnTitle = true)
+        val repository = MoviesRepositoryImpl(local, tmdb, tmdb)
+
+        assertFailsWith<IllegalArgumentException> { repository.getMovieByTitle("Nonexistent Movie") }
+        assertEquals(0, local.savePopularMoviesCalls)
     }
 }

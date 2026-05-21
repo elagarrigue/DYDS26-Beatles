@@ -1,0 +1,33 @@
+package edu.dyds.movies.data.external.tmdb
+
+import edu.dyds.movies.data.external.DetailedMovieSource
+import edu.dyds.movies.data.external.PopularMoviesSource
+import edu.dyds.movies.data.external.RemoteMovie
+import edu.dyds.movies.data.external.RemoteResult
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+
+class TMDBMoviesExternalSource(
+    private val httpClient: HttpClient,
+) : PopularMoviesSource, DetailedMovieSource {
+
+    override suspend fun getPopularMovies(): List<RemoteMovie> {
+        return httpClient
+            .get("/3/discover/movie?sort_by=popularity.desc")
+            .body<RemoteResult>()
+            .results
+    }
+
+    override suspend fun getMovieByTitle(title: String): RemoteMovie {
+        val results = httpClient
+            .get("/3/search/movie?query=$title")
+            .body<RemoteResult>()
+            .results
+
+        return results.firstOrNull()
+            ?: throw IllegalArgumentException("No movie found for title: $title")
+    }
+}
+
+
