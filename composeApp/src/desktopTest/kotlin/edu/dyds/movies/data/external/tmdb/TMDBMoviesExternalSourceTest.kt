@@ -38,19 +38,11 @@ class TMDBMoviesExternalSourceTest {
 
     private lateinit var httpClient: HttpClient
 
-    /**
-     * AfterTest: Cleans up HTTP resources after each test.
-     * This follows the "After" pattern for test cleanup with @AfterTest annotation.
-     */
     @AfterTest
     fun tearDown() {
         httpClient.close()
     }
 
-    /**
-     * Helper to create a configured mock HttpClient for testing.
-     * This follows the factory pattern to reduce code duplication.
-     */
     private fun createTestHttpClient(
         responseProvider: (String) -> String,
     ): HttpClient {
@@ -73,7 +65,6 @@ class TMDBMoviesExternalSourceTest {
 
     @Test
     fun `getPopularMovies should return list of remote movies`() = runTest {
-        // Arrange
         val expectedMovies = listOf(remoteMovie(1), remoteMovie(2))
         val response = RemoteResult(
             page = 1,
@@ -83,16 +74,13 @@ class TMDBMoviesExternalSourceTest {
         )
         httpClient = createTestHttpClient { Json.encodeToString(response) }
 
-        // Act
         val result = TMDBMoviesExternalSource(httpClient).getPopularMovies()
 
-        // Assert
         assertEquals(expectedMovies, result)
     }
 
     @Test
     fun `getPopularMovies should return empty list when response is empty`() = runTest {
-        // Arrange
         val response = RemoteResult(
             page = 1,
             results = emptyList(),
@@ -101,16 +89,13 @@ class TMDBMoviesExternalSourceTest {
         )
         httpClient = createTestHttpClient { Json.encodeToString(response) }
 
-        // Act
         val result = TMDBMoviesExternalSource(httpClient).getPopularMovies()
 
-        // Assert
         assertEquals(emptyList(), result)
     }
 
     @Test
     fun `getPopularMovies should handle large result sets`() = runTest {
-        // Arrange
         val expectedMovies = (1..50).map { remoteMovie(it) }.toList()
         val response = RemoteResult(
             page = 1,
@@ -120,10 +105,8 @@ class TMDBMoviesExternalSourceTest {
         )
         httpClient = createTestHttpClient { Json.encodeToString(response) }
 
-        // Act
         val result = TMDBMoviesExternalSource(httpClient).getPopularMovies()
 
-        // Assert
         assertEquals(50, result.size)
         assertEquals(expectedMovies, result)
     }
@@ -132,7 +115,6 @@ class TMDBMoviesExternalSourceTest {
 
     @Test
     fun `getMovieByTitle should return first matching remote movie`() = runTest {
-        // Arrange
         val expectedMovie = remoteMovie(42, "Expected Movie")
         val response = RemoteResult(
             page = 1,
@@ -142,16 +124,13 @@ class TMDBMoviesExternalSourceTest {
         )
         httpClient = createTestHttpClient { Json.encodeToString(response) }
 
-        // Act
         val result = TMDBMoviesExternalSource(httpClient).getMovieByTitle("Expected Movie")
 
-        // Assert
         assertEquals(expectedMovie, result)
     }
 
     @Test
     fun `getMovieByTitle should map remote fields correctly`() = runTest {
-        // Arrange
         val remoteMovie = RemoteMovie(
             id = 999,
             title = "Test Movie",
@@ -172,10 +151,8 @@ class TMDBMoviesExternalSourceTest {
         )
         httpClient = createTestHttpClient { Json.encodeToString(response) }
 
-        // Act
         val result = TMDBMoviesExternalSource(httpClient).getMovieByTitle("Test Movie")
 
-        // Assert
         assertEquals(999, result.id)
         assertEquals("Test Movie", result.title)
         assertEquals("Test overview", result.overview)
@@ -190,7 +167,6 @@ class TMDBMoviesExternalSourceTest {
 
     @Test
     fun `getMovieByTitle should map null backdrop correctly`() = runTest {
-        // Arrange
         val remoteMovie = RemoteMovie(
             id = 888,
             title = "No Backdrop Movie",
@@ -211,17 +187,14 @@ class TMDBMoviesExternalSourceTest {
         )
         httpClient = createTestHttpClient { Json.encodeToString(response) }
 
-        // Act
         val result = TMDBMoviesExternalSource(httpClient).getMovieByTitle("No Backdrop Movie")
 
-        // Assert
         assertNotNull(result)
         assertEquals(null, result.backdropPath)
     }
 
     @Test
     fun `getMovieByTitle should throw IllegalArgumentException when response is empty`() = runTest {
-        // Arrange
         val response = RemoteResult(
             page = 1,
             results = emptyList(),
@@ -230,7 +203,6 @@ class TMDBMoviesExternalSourceTest {
         )
         httpClient = createTestHttpClient { Json.encodeToString(response) }
 
-        // Act & Assert
         val exception = assertFailsWith<IllegalArgumentException> {
             TMDBMoviesExternalSource(httpClient).getMovieByTitle("Non Existent Movie")
         }
@@ -239,7 +211,6 @@ class TMDBMoviesExternalSourceTest {
 
     @Test
     fun `getMovieByTitle should handle special characters in query`() = runTest {
-        // Arrange
         val title = "Star Wars: Episode IV"
         val expectedMovie = RemoteMovie(
             id = 11,
@@ -261,17 +232,14 @@ class TMDBMoviesExternalSourceTest {
         )
         httpClient = createTestHttpClient { Json.encodeToString(response) }
 
-        // Act
         val result = TMDBMoviesExternalSource(httpClient).getMovieByTitle(title)
 
-        // Assert
         assertEquals(11, result.id)
         assertEquals("Star Wars: Episode IV - A New Hope", result.title)
     }
 
     @Test
     fun `getMovieByTitle should return first result when multiple matches exist`() = runTest {
-        // Arrange
         val movie1 = remoteMovie(100, "Movie First Result")
         val movie2 = remoteMovie(101, "Movie Second Result")
         val movie3 = remoteMovie(102, "Movie Third Result")
@@ -283,20 +251,17 @@ class TMDBMoviesExternalSourceTest {
         )
         httpClient = createTestHttpClient { Json.encodeToString(response) }
 
-        // Act
         val result = TMDBMoviesExternalSource(httpClient).getMovieByTitle("Movie")
 
-        // Assert
         assertEquals(100, result.id)
         assertEquals("Movie First Result", result.title)
     }
 
     @Test
     fun `getMovieByTitle should handle numeric IDs correctly`() = runTest {
-        // Arrange
-        val remoteMovie = RemoteMovie(
-            id = 550, // Fight Club
-            title = "Fight Club",
+         val remoteMovie = RemoteMovie(
+             id = 550,
+             title = "Fight Club",
             overview = "An insomniac office worker...",
             releaseDate = "1999-10-15",
             posterPath = "/fight_club.jpg",
@@ -314,10 +279,8 @@ class TMDBMoviesExternalSourceTest {
         )
         httpClient = createTestHttpClient { Json.encodeToString(response) }
 
-        // Act
         val result = TMDBMoviesExternalSource(httpClient).getMovieByTitle("Fight Club")
 
-        // Assert
         assertEquals(550, result.id)
     }
 
@@ -325,7 +288,6 @@ class TMDBMoviesExternalSourceTest {
 
     @Test
     fun `getPopularMovies should propagate HTTP 500 error`() = runTest {
-        // Arrange
         httpClient = HttpClient(MockEngine {
             respond(
                 content = "Internal Server Error",
@@ -338,7 +300,6 @@ class TMDBMoviesExternalSourceTest {
             }
         }
 
-        // Act & Assert
         assertFailsWith<Exception> {
             TMDBMoviesExternalSource(httpClient).getPopularMovies()
         }
@@ -346,7 +307,6 @@ class TMDBMoviesExternalSourceTest {
 
     @Test
     fun `getMovieByTitle should propagate HTTP 500 error`() = runTest {
-        // Arrange
         httpClient = HttpClient(MockEngine {
             respond(
                 content = "Internal Server Error",
@@ -359,7 +319,6 @@ class TMDBMoviesExternalSourceTest {
             }
         }
 
-        // Act & Assert
         assertFailsWith<Exception> {
             TMDBMoviesExternalSource(httpClient).getMovieByTitle("Test")
         }
@@ -367,7 +326,6 @@ class TMDBMoviesExternalSourceTest {
 
     @Test
     fun `getPopularMovies should propagate exception when response is malformed`() = runTest {
-        // Arrange: Return invalid JSON that cannot be deserialized as RemoteResult
         httpClient = HttpClient(MockEngine {
             respond(
                 content = """{"invalid": "structure", "missing_results": true}""",
@@ -380,7 +338,6 @@ class TMDBMoviesExternalSourceTest {
             }
         }
 
-        // Act & Assert
         assertFailsWith<Exception> {
             TMDBMoviesExternalSource(httpClient).getPopularMovies()
         }
@@ -388,7 +345,6 @@ class TMDBMoviesExternalSourceTest {
 
     @Test
     fun `getMovieByTitle should propagate exception when response is malformed`() = runTest {
-        // Arrange: Return invalid JSON that cannot be deserialized as RemoteResult
         httpClient = HttpClient(MockEngine {
             respond(
                 content = """{"invalid": "structure", "no_results_field": true}""",
@@ -401,7 +357,6 @@ class TMDBMoviesExternalSourceTest {
             }
         }
 
-        // Act & Assert
         assertFailsWith<Exception> {
             TMDBMoviesExternalSource(httpClient).getMovieByTitle("Test")
         }
