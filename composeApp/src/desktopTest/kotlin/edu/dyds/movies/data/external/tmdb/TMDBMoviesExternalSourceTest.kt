@@ -21,19 +21,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
 
-/**
- * Unit tests for TMDBMoviesExternalSource.
- *
- * These tests verify the correct behavior of the TMDB external data source,
- * including proper HTTP endpoint calls, response parsing, and error handling.
- *
- * Tests follow SOLID principles and clean code practices:
- * - Single Responsibility: Each test verifies one specific behavior
- * - Dependency Injection: Mock HttpClient is created per test
- * - DRY: Common factory method for HttpClient creation
- * - Meaningful names: Test names clearly describe what is being tested
- * - Before/After pattern: Resources are properly cleaned up with @AfterTest
- */
 class TMDBMoviesExternalSourceTest {
 
     private lateinit var httpClient: HttpClient
