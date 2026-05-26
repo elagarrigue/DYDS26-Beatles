@@ -240,12 +240,14 @@ class MoviesRepositoryImplTest {
     }
 
     @Test
-    fun `get movie by title should propagate not found exception when remote returns empty results`() = runTest {
+    fun `get movie by title should return null when remote returns empty results`() = runTest {
         val local = LocalDataSourceSpy(cachedPopularMovies = null)
         val tmdb = TMDBMoviesExternalSourceFake(shouldReturnEmptyResultsOnTitle = true)
         val repository = MoviesRepositoryImpl(local, tmdb, tmdb)
 
-        assertFailsWith<IllegalArgumentException> { repository.getMovieByTitle("Nonexistent Movie") }
+        val result = repository.getMovieByTitle("Nonexistent Movie")
+
+        assertEquals(null, result)
         assertEquals(0, local.savePopularMoviesCalls)
     }
 }

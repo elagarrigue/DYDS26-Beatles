@@ -28,7 +28,7 @@ class MoviesRepositoryImpl(
             return localMovie
         }
 
-        val remoteMovie = detailedMovieSource.getMovieByTitle(title)
+        val remoteMovie = detailedMovieSource.getMovieByTitle(title) ?: return null
         val domainMovie = remoteMovie.toDomainMovie()
         val cachedMovies = localDataSource.getPopularMovies()
         if (cachedMovies != null) {

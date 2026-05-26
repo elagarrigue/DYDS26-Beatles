@@ -17,6 +17,7 @@ import kotlin.test.AfterTest
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
@@ -138,7 +139,7 @@ class TMDBMoviesExternalSourceTest {
         )
         httpClient = createTestHttpClient { Json.encodeToString(response) }
 
-        val result = TMDBMoviesExternalSource(httpClient).getMovieByTitle("Test Movie")
+        val result = requireNotNull(TMDBMoviesExternalSource(httpClient).getMovieByTitle("Test Movie"))
 
         assertEquals(999, result.id)
         assertEquals("Test Movie", result.title)
@@ -181,7 +182,7 @@ class TMDBMoviesExternalSourceTest {
     }
 
     @Test
-    fun `getMovieByTitle should throw IllegalArgumentException when response is empty`() = runTest {
+    fun `getMovieByTitle should return null when response is empty`() = runTest {
         val response = RemoteResult(
             page = 1,
             results = emptyList(),
@@ -190,10 +191,9 @@ class TMDBMoviesExternalSourceTest {
         )
         httpClient = createTestHttpClient { Json.encodeToString(response) }
 
-        val exception = assertFailsWith<IllegalArgumentException> {
-            TMDBMoviesExternalSource(httpClient).getMovieByTitle("Non Existent Movie")
-        }
-        assertEquals("No movie found for title: Non Existent Movie", exception.message)
+        val result = TMDBMoviesExternalSource(httpClient).getMovieByTitle("Non Existent Movie")
+
+        assertNull(result)
     }
 
     @Test
@@ -219,7 +219,7 @@ class TMDBMoviesExternalSourceTest {
         )
         httpClient = createTestHttpClient { Json.encodeToString(response) }
 
-        val result = TMDBMoviesExternalSource(httpClient).getMovieByTitle(title)
+        val result = requireNotNull(TMDBMoviesExternalSource(httpClient).getMovieByTitle(title))
 
         assertEquals(11, result.id)
         assertEquals("Star Wars: Episode IV - A New Hope", result.title)
@@ -238,7 +238,7 @@ class TMDBMoviesExternalSourceTest {
         )
         httpClient = createTestHttpClient { Json.encodeToString(response) }
 
-        val result = TMDBMoviesExternalSource(httpClient).getMovieByTitle("Movie")
+        val result = requireNotNull(TMDBMoviesExternalSource(httpClient).getMovieByTitle("Movie"))
 
         assertEquals(100, result.id)
         assertEquals("Movie First Result", result.title)
@@ -266,7 +266,7 @@ class TMDBMoviesExternalSourceTest {
         )
         httpClient = createTestHttpClient { Json.encodeToString(response) }
 
-        val result = TMDBMoviesExternalSource(httpClient).getMovieByTitle("Fight Club")
+        val result = requireNotNull(TMDBMoviesExternalSource(httpClient).getMovieByTitle("Fight Club"))
 
         assertEquals(550, result.id)
     }

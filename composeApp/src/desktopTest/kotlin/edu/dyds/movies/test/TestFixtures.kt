@@ -87,10 +87,10 @@ class TMDBMoviesExternalSourceFake(
         return popularMoviesProvider()
     }
 
-    override suspend fun getMovieByTitle(title: String): RemoteMovie {
+    override suspend fun getMovieByTitle(title: String): RemoteMovie? {
         getMovieByTitleCalls++
         if (shouldThrowOnByTitle) throw IllegalStateException("remote getByTitle error")
-        if (shouldReturnEmptyResultsOnTitle) throw IllegalArgumentException("No movie found for title: $title")
+        if (shouldReturnEmptyResultsOnTitle) return null
         return movieByTitleProvider(title)
     }
 }
