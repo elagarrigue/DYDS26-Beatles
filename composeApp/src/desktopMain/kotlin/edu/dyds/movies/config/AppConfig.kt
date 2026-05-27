@@ -3,12 +3,6 @@ package edu.dyds.movies.config
 import java.io.File
 import java.util.Properties
 
-/**
- * Configuración centralizada de la aplicación.
- *
- * Las claves API se leen desde variables de entorno. Si no están disponibles,
- * se usan valores por defecto (que deberían reemplazarse con valores válidos).
- */
 object AppConfig {
     private val localProperties: Properties by lazy { loadLocalProperties() }
 

@@ -11,9 +11,9 @@ class GetMovieDetailsUseCaseImpl(
         return try {
             moviesRepository.getMovieByTitle(title)
         } catch (e: CancellationException) {
-            throw e // Re-lanzar CancellationException
+            throw e
         } catch (e: Exception) {
-            null // Manejar otras excepciones
+            null
         }
     }
 }

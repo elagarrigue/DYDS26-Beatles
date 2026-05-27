@@ -47,10 +47,6 @@ class TMDBMoviesExternalSourceTest {
             }
         }
     }
-
-
-    // ==================== getPopularMovies tests ====================
-
     @Test
     fun `getPopularMovies should return list of remote movies`() = runTest {
         val expectedMovies = listOf(remoteMovie(1), remoteMovie(2))
@@ -98,8 +94,6 @@ class TMDBMoviesExternalSourceTest {
         assertEquals(50, result.size)
         assertEquals(expectedMovies, result)
     }
-
-    // ==================== getMovieByTitle tests ====================
 
     @Test
     fun `getMovieByTitle should return first matching remote movie`() = runTest {
@@ -270,8 +264,6 @@ class TMDBMoviesExternalSourceTest {
 
         assertEquals(550, result.id)
     }
-
-    // ==================== HTTP Error Handling tests ====================
 
     @Test
     fun `getPopularMovies should propagate HTTP 500 error`() = runTest {

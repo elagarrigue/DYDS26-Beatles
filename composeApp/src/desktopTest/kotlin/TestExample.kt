@@ -40,14 +40,11 @@ class TestExample {
 
     @Test
     fun `get data should return data and side effect should be triggered`() {
-        // arrange
         val myService = MyServiceFake()
         val myViewModel = MyViewModel(myService)
 
-        // act
         val result = myViewModel.getData()
 
-        // assert
         assert(result == "Data")
         assert(myService.isSideEffectCalled)
     }
@@ -62,11 +59,9 @@ class TestExample {
             myViewModel.dataFlow.collect { events.add(it) }
         }
 
-        // act
         myViewModel.dataFlow.emit("value")
         myViewModel.dataFlow.emit("value2")
 
-        // assert
         assert(events.last() == "value2")
     }
 }
