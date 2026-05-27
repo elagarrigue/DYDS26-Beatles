@@ -32,6 +32,8 @@ kotlin {
             implementation(libs.ktor.client.contentnegotiation)
             implementation(libs.androidx.navigation.compose)
             implementation(libs.androidx.lifecycle.viewmodel.compose)
+        }
+        commonTest.dependencies {
             implementation(libs.ktor.client.mock)
         }
         desktopMain.dependencies {

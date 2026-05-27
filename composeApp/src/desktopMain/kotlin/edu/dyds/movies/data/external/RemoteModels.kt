@@ -19,13 +19,13 @@ data class RemoteMovie(
     val id: Int,
     val title: String,
     val overview: String,
-    @SerialName("release_date") val releaseDate: String,
-    @SerialName("poster_path") val posterPath: String,
+    @SerialName("release_date") val releaseDate: String?,
+    @SerialName("poster_path") val posterPath: String?,
     @SerialName("backdrop_path") val backdropPath: String?,
     @SerialName("original_title") val originalTitle: String,
     @SerialName("original_language") val originalLanguage: String,
-    val popularity: Double,
-    @SerialName("vote_average") val voteAverage: Double,
+    val popularity: Double?,
+    @SerialName("vote_average") val voteAverage: Double?,
 ) {
     private fun resolveImageUrl(pathOrUrl: String?, width: String): String? {
         if (pathOrUrl.isNullOrBlank()) return null
@@ -41,13 +41,13 @@ data class RemoteMovie(
             id = id,
             title = title,
             overview = overview,
-            releaseDate = releaseDate,
+            releaseDate = releaseDate ?: "",
             poster = resolveImageUrl(posterPath, AppConfig.TMDB_POSTER_WIDTH).orEmpty(),
             backdrop = resolveImageUrl(backdropPath, AppConfig.TMDB_BACKDROP_WIDTH),
             originalTitle = originalTitle,
             originalLanguage = originalLanguage,
-            popularity = popularity,
-            voteAverage = voteAverage,
+            popularity = popularity ?: 0.0,
+            voteAverage = voteAverage ?: 0.0,
         )
     }
 }
