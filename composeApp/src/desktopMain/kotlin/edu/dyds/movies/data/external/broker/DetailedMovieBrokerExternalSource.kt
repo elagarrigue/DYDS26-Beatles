@@ -38,11 +38,23 @@ class DetailedMovieBrokerExternalSource(
         tmdbMovie: RemoteMovie,
         omdbMovie: RemoteMovie,
     ): RemoteMovie {
+        val avgPopularity = calculateAverage(tmdbMovie.popularity, omdbMovie.popularity)
+        val avgVoteAverage = calculateAverage(tmdbMovie.voteAverage, omdbMovie.voteAverage)
+
         return tmdbMovie.copy(
             overview = "TMDB: ${tmdbMovie.overview}\n\nOMDB: ${omdbMovie.overview}",
-            popularity = (tmdbMovie.popularity + omdbMovie.popularity) / 2.0,
-            voteAverage = (tmdbMovie.voteAverage + omdbMovie.voteAverage) / 2.0,
+            popularity = avgPopularity,
+            voteAverage = avgVoteAverage,
         )
+    }
+
+    private fun calculateAverage(value1: Double?, value2: Double?): Double? {
+        return when {
+            value1 != null && value2 != null -> (value1 + value2) / 2.0
+            value1 != null -> value1
+            value2 != null -> value2
+            else -> null
+        }
     }
 
     private fun RemoteMovie.withOverviewPrefix(sourceName: String): RemoteMovie {

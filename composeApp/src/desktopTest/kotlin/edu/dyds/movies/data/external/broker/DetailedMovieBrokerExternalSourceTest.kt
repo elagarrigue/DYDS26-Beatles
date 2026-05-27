@@ -57,8 +57,12 @@ class DetailedMovieBrokerExternalSourceTest {
         assertEquals(tmdbMovie.id, result.id)
         assertEquals(tmdbMovie.title, result.title)
         assertEquals("TMDB: ${tmdbMovie.overview}\n\nOMDB: ${omdbMovie.overview}", result.overview)
-        assertEquals((tmdbMovie.popularity + omdbMovie.popularity) / 2.0, result.popularity)
-        assertEquals((tmdbMovie.voteAverage + omdbMovie.voteAverage) / 2.0, result.voteAverage)
+        val tmdbPopularity = requireNotNull(tmdbMovie.popularity)
+        val omdbPopularity = requireNotNull(omdbMovie.popularity)
+        assertEquals((tmdbPopularity + omdbPopularity) / 2.0, result.popularity)
+        val tmdbVoteAverage = requireNotNull(tmdbMovie.voteAverage)
+        val omdbVoteAverage = requireNotNull(omdbMovie.voteAverage)
+        assertEquals((tmdbVoteAverage + omdbVoteAverage) / 2.0, result.voteAverage)
     }
 
     @Test
@@ -132,4 +136,3 @@ class DetailedMovieBrokerExternalSourceTest {
         override suspend fun getMovieByTitle(title: String): RemoteMovie? = provider(title)
     }
 }
-
