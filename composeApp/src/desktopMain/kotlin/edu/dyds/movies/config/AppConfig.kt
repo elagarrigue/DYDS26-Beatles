@@ -1,5 +1,8 @@
 package edu.dyds.movies.config
 
+import java.io.File
+import java.util.Properties
+
 /**
  * Configuración centralizada de la aplicación.
  *
@@ -7,8 +10,25 @@ package edu.dyds.movies.config
  * se usan valores por defecto (que deberían reemplazarse con valores válidos).
  */
 object AppConfig {
-    val TMDB_API_KEY: String = System.getenv("TMDB_API_KEY") ?: "YOUR_TMDB_API_KEY_HERE"
-    val OMDB_API_KEY: String = System.getenv("OMDB_API_KEY") ?: "YOUR_OMDB_API_KEY_HERE"
+    private val localProperties: Properties by lazy { loadLocalProperties() }
+
+    private fun loadLocalProperties(): Properties {
+        val properties = Properties()
+        val localFile = File(System.getProperty("user.dir"), "local.properties")
+        if (localFile.exists()) {
+            localFile.inputStream().use { properties.load(it) }
+        }
+        return properties
+    }
+
+    private fun resolveKey(name: String): String? {
+        return System.getenv(name)
+            ?: System.getProperty(name)
+            ?: localProperties.getProperty(name)
+    }
+
+    val TMDB_API_KEY: String = resolveKey("TMDB_API_KEY") ?: "d18da1b5da16397619c688b0263cd281"
+    val OMDB_API_KEY: String = resolveKey("OMDB_API_KEY") ?: "a96e7f78"
 
     const val TMDB_BASE_URL = "https://api.themoviedb.org"
     const val TMDB_REQUEST_TIMEOUT_MS = 5000L
@@ -19,5 +39,3 @@ object AppConfig {
     const val OMDB_BASE_URL = "https://www.omdbapi.com"
     const val OMDB_REQUEST_TIMEOUT_MS = 5000L
 }
-
-
