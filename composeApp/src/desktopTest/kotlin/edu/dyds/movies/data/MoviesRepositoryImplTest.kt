@@ -136,9 +136,12 @@ class MoviesRepositoryImplTest {
     @Test
     fun `get movie by title should fetch remote and always merge into non-null popular cache`() = runTest {
         val cachedMovie = remoteMovie(id = 1, title = "Cached Movie").toDomainMovie() // Consistent Movie object
-        val bed = createTestBed(localPopularMovies = listOf(cachedMovie))
         val targetTitle = "New Movie"
         val remoteMovieFromBroker = remoteMovie(id = 2, title = targetTitle) // Remote returns a new movie
+        val bed = createTestBed(
+            localPopularMovies = listOf(cachedMovie),
+            remoteMovieByTitleProvider = { remoteMovieFromBroker },
+        )
 
         val result = bed.repository.getMovieByTitle(targetTitle)
 
@@ -156,9 +159,12 @@ class MoviesRepositoryImplTest {
 
     @Test
     fun `get movie by title should cache remote movie when popular cache is empty list`() = runTest {
-        val bed = createTestBed(localPopularMovies = emptyList())
         val targetTitle = "Empty Cache Movie"
         val remoteMovieFromBroker = remoteMovie(id = 1, title = targetTitle)
+        val bed = createTestBed(
+            localPopularMovies = emptyList(),
+            remoteMovieByTitleProvider = { remoteMovieFromBroker },
+        )
 
         val result = bed.repository.getMovieByTitle(targetTitle)
 
@@ -172,9 +178,12 @@ class MoviesRepositoryImplTest {
 
     @Test
     fun `get movie by title should initialize popular cache when null`() = runTest {
-        val bed = createTestBed(localPopularMovies = null)
         val targetTitle = "Null Cache Movie"
         val remoteMovieFromBroker = remoteMovie(id = 1, title = targetTitle)
+        val bed = createTestBed(
+            localPopularMovies = null,
+            remoteMovieByTitleProvider = { remoteMovieFromBroker },
+        )
 
         val result = bed.repository.getMovieByTitle(targetTitle)
 
@@ -233,7 +242,7 @@ class MoviesRepositoryImplTest {
         val remoteMovieFromBroker = remoteMovie(id = 100, title = "Movie 99") // Simulate remote returning same title but different ID
         val bed = createTestBed(
             localPopularMovies = listOf(cachedMovie, cachedMovie99),
-            remoteMovieByTitleProvider = { remoteMovieFromBroker }
+            remoteMovieByTitleProvider = { remoteMovieFromBroker },
         )
 
         val result = bed.repository.getMovieByTitle("Movie 99")
