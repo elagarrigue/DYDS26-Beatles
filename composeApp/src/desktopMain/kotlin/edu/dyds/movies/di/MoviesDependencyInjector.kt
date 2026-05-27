@@ -33,9 +33,8 @@ object MoviesDependencyInjector {
             }
             install(DefaultRequest) {
                 url {
-                    protocol = URLProtocol.HTTPS
-                    host = "api.themoviedb.org"
-                    parameters.append("api_key", AppConfig.TMDB_API_KEY)
+                    takeFrom(AppConfig.TMDB_BASE_URL)
+                    parameters.append("api_key", AppConfig.tmdbApiKey())
                 }
             }
             install(HttpTimeout) {
@@ -53,7 +52,7 @@ object MoviesDependencyInjector {
             install(DefaultRequest) {
                 url {
                     takeFrom(AppConfig.OMDB_BASE_URL)
-                    parameters.append("apikey", AppConfig.OMDB_API_KEY)
+                    parameters.append("apikey", AppConfig.omdbApiKey())
                 }
             }
             install(HttpTimeout) {
