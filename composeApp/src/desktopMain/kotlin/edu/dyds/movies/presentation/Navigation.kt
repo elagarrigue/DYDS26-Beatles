@@ -2,6 +2,8 @@
 
 package edu.dyds.movies.presentation
 
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -19,7 +21,7 @@ private const val HOME = "home"
 
 private const val DETAIL = "detail"
 
-private const val MOVIE_TITLE = "movieTitle" // Changed from MOVIE_ID
+private const val MOVIE_TITLE = "movieTitle"
 
 @Composable
 fun Navigation() {
@@ -36,7 +38,7 @@ private fun NavGraphBuilder.homeDestination(navController: NavHostController) {
         HomeScreen(
             viewModel = getHomeViewModel(),
             onGoodMovieClick = {
-                navController.navigate("$DETAIL/${it.title}") // Changed from it.id to it.title
+                navController.navigate("$DETAIL/${URLEncoder.encode(it.title, StandardCharsets.UTF_8.toString())}")
             }
         )
     }
@@ -44,13 +46,13 @@ private fun NavGraphBuilder.homeDestination(navController: NavHostController) {
 
 private fun NavGraphBuilder.detailDestination(navController: NavHostController) {
     composable(
-        route = "$DETAIL/{$MOVIE_TITLE}", // Changed from MOVIE_ID
-        arguments = listOf(navArgument(MOVIE_TITLE) { type = NavType.StringType }) // Changed from MOVIE_ID and IntType
+        route = "$DETAIL/{$MOVIE_TITLE}",
+        arguments = listOf(navArgument(MOVIE_TITLE) { type = NavType.StringType })
     ) { backstackEntry ->
-        val movieTitle = backstackEntry.arguments?.getString(MOVIE_TITLE) // Changed from movieId and getInt
+        val movieTitle = backstackEntry.arguments?.getString(MOVIE_TITLE)
 
         movieTitle?.let {
-            DetailScreen(getDetailViewModel(), it, onBack = { navController.popBackStack() }) // Changed to pass movieTitle (String)
+            DetailScreen(getDetailViewModel(), it, onBack = { navController.popBackStack() })
         }
     }
 }

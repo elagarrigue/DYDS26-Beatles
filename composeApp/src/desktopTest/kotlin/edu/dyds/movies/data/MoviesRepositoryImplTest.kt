@@ -29,6 +29,7 @@ class MoviesRepositoryImplTest {
         shouldThrowOnLocalByTitle: Boolean = false,
         shouldThrowOnRemotePopular: Boolean = false,
         shouldThrowOnRemoteByTitle: Boolean = false,
+        shouldReturnEmptyResultsOnTitle: Boolean = false,
     ): TestBed {
         val local = LocalDataSourceSpy(
             cachedPopularMovies = localPopularMovies,
@@ -40,6 +41,7 @@ class MoviesRepositoryImplTest {
             movieByTitleProvider = remoteMovieByTitleProvider,
             shouldThrowOnPopular = shouldThrowOnRemotePopular,
             shouldThrowOnByTitle = shouldThrowOnRemoteByTitle,
+            shouldReturnEmptyResultsOnTitle = shouldReturnEmptyResultsOnTitle,
         )
         return TestBed(MoviesRepositoryImpl(local, tmdb, tmdb), local, tmdb)
     }
@@ -112,59 +114,75 @@ class MoviesRepositoryImplTest {
     }
 
     @Test
-    fun `get movie by title should return local movie when cache already has that title`() = runTest {
-        val cachedMovie = movie(id = 42, title = "Expected movie")
-        val bed = createTestBed(localPopularMovies = listOf(cachedMovie))
+    fun `get movie by title should fetch remote and update local cache even if local already has it`() = runTest {
+        val cachedMovie = remoteMovie(id = 42, title = "Expected movie").toDomainMovie() // Consistent Movie object
+        val remoteMovieFromBroker = remoteMovie(id = 100, title = "Expected movie") // Simulate remote returning same title but different ID
+        val bed = createTestBed(
+            localPopularMovies = listOf(cachedMovie),
+            remoteMovieByTitleProvider = { remoteMovieFromBroker }
+        )
 
         val result = bed.repository.getMovieByTitle("Expected movie")
 
-        assertEquals(cachedMovie, result)
-        assertEquals(0, bed.tmdb.getMovieByTitleCalls)
-        assertEquals(1, bed.local.getMovieByTitleCalls)
-        assertEquals(0, bed.local.savePopularMoviesCalls)
+        assertNotNull(result)
+        assertEquals(remoteMovieFromBroker.toDomainMovie(), result) // Result should be from remote
+        assertEquals(1, bed.tmdb.getMovieByTitleCalls) // Remote should be called
+        assertEquals(1, bed.local.getPopularMoviesCalls) // Local popular movies read to update
+        assertEquals(1, bed.local.savePopularMoviesCalls) // Local popular movies saved
+        // Verify the cache was updated with the remote version
+        assertEquals(listOf(remoteMovieFromBroker.toDomainMovie()), bed.local.lastSavedPopularMovies)
     }
 
     @Test
     fun `get movie by title should fetch remote and always merge into non-null popular cache`() = runTest {
-        val cachedMovie = movie(id = 1, title = "Cached Movie")
+        val cachedMovie = remoteMovie(id = 1, title = "Cached Movie").toDomainMovie() // Consistent Movie object
         val bed = createTestBed(localPopularMovies = listOf(cachedMovie))
         val targetTitle = "New Movie"
+        val remoteMovieFromBroker = remoteMovie(id = 2, title = targetTitle) // Remote returns a new movie
 
         val result = bed.repository.getMovieByTitle(targetTitle)
 
         assertNotNull(result)
-        assertEquals(targetTitle, result.title)
+        assertEquals(remoteMovieFromBroker.toDomainMovie(), result) // Result should be from remote
         assertEquals(1, bed.tmdb.getMovieByTitleCalls)
-        assertEquals(1, bed.local.getMovieByTitleCalls)
+        assertEquals(1, bed.local.getPopularMoviesCalls) // Local popular movies read to update
         assertEquals(1, bed.local.savePopularMoviesCalls)
-        assertEquals(listOf("Cached Movie", targetTitle), bed.local.lastSavedPopularMovies?.map { it.title })
+        // Verify the cache was updated with the new remote movie
+        assertEquals(
+            listOf(cachedMovie, remoteMovieFromBroker.toDomainMovie()),
+            bed.local.lastSavedPopularMovies
+        )
     }
 
     @Test
     fun `get movie by title should cache remote movie when popular cache is empty list`() = runTest {
         val bed = createTestBed(localPopularMovies = emptyList())
         val targetTitle = "Empty Cache Movie"
+        val remoteMovieFromBroker = remoteMovie(id = 1, title = targetTitle)
 
         val result = bed.repository.getMovieByTitle(targetTitle)
 
         assertNotNull(result)
-        assertEquals(targetTitle, result.title)
+        assertEquals(remoteMovieFromBroker.toDomainMovie(), result)
         assertEquals(1, bed.tmdb.getMovieByTitleCalls)
-        assertEquals(1, bed.local.getMovieByTitleCalls)
+        assertEquals(1, bed.local.getPopularMoviesCalls) // Local popular movies read to update
         assertEquals(1, bed.local.savePopularMoviesCalls)
-        assertEquals(listOf(targetTitle), bed.local.lastSavedPopularMovies?.map { it.title })
+        assertEquals(listOf(remoteMovieFromBroker.toDomainMovie()), bed.local.lastSavedPopularMovies)
     }
 
     @Test
-    fun `get movie by title should not save when popular cache is null`() = runTest {
+    fun `get movie by title should initialize popular cache when null`() = runTest {
         val bed = createTestBed(localPopularMovies = null)
         val targetTitle = "Null Cache Movie"
+        val remoteMovieFromBroker = remoteMovie(id = 1, title = targetTitle)
 
         val result = bed.repository.getMovieByTitle(targetTitle)
 
         assertNotNull(result)
+        assertEquals(remoteMovieFromBroker.toDomainMovie(), result)
         assertEquals(1, bed.tmdb.getMovieByTitleCalls)
-        assertEquals(0, bed.local.savePopularMoviesCalls)
+        assertEquals(1, bed.local.getPopularMoviesCalls) // Now expects a read to update cache
+        assertEquals(1, bed.local.savePopularMoviesCalls) // Now expects a save to initialize cache
     }
 
     @Test
@@ -204,31 +222,45 @@ class MoviesRepositoryImplTest {
             result,
         )
         assertEquals(1, bed.tmdb.getMovieByTitleCalls)
-        assertEquals(0, bed.local.savePopularMoviesCalls)
+        assertEquals(1, bed.local.getPopularMoviesCalls) // Now expects a read to update cache
+        assertEquals(1, bed.local.savePopularMoviesCalls) // Now expects a save to initialize cache
     }
 
     @Test
-    fun `get movie by title should return cached popular movie and skip remote when title exists`() = runTest {
-        val cachedMovies = listOf(movie(id = 1, title = "Movie 1"), movie(id = 99, title = "Movie 99"))
-        val bed = createTestBed(localPopularMovies = cachedMovies)
+    fun `get movie by title should fetch remote and update local cache when title exists in local`() = runTest {
+        val cachedMovie = remoteMovie(id = 1, title = "Movie 1").toDomainMovie() // Consistent Movie object
+        val cachedMovie99 = remoteMovie(id = 99, title = "Movie 99").toDomainMovie() // Consistent Movie object
+        val remoteMovieFromBroker = remoteMovie(id = 100, title = "Movie 99") // Simulate remote returning same title but different ID
+        val bed = createTestBed(
+            localPopularMovies = listOf(cachedMovie, cachedMovie99),
+            remoteMovieByTitleProvider = { remoteMovieFromBroker }
+        )
 
         val result = bed.repository.getMovieByTitle("Movie 99")
 
         assertNotNull(result)
-        assertEquals("Movie 99", result.title)
-        assertEquals(cachedMovies[1], result)
-        assertEquals(0, bed.tmdb.getMovieByTitleCalls)
-        assertEquals(1, bed.local.getMovieByTitleCalls)
-        assertEquals(0, bed.local.savePopularMoviesCalls)
+        assertEquals(remoteMovieFromBroker.toDomainMovie(), result) // Result should be from remote
+        assertEquals(1, bed.tmdb.getMovieByTitleCalls) // Remote should be called
+        assertEquals(1, bed.local.getPopularMoviesCalls) // Local popular movies read to update
+        assertEquals(1, bed.local.savePopularMoviesCalls) // Local popular movies saved
+        // Verify the cache was updated with the remote version
+        assertEquals(
+            listOf(cachedMovie, remoteMovieFromBroker.toDomainMovie()),
+            bed.local.lastSavedPopularMovies
+        )
     }
 
     @Test
-    fun `get movie by title should propagate local exception and never call remote`() = runTest {
-        val bed = createTestBed(shouldThrowOnLocalByTitle = true)
+    fun `get movie by title should propagate local exception if remote returns null`() = runTest {
+        val bed = createTestBed(
+            shouldReturnEmptyResultsOnTitle = true, // Simulate remote returning null
+            shouldThrowOnLocalByTitle = true // Local will throw when called
+        )
 
         assertFailsWith<IllegalStateException> { bed.repository.getMovieByTitle("Any Movie") }
-        assertEquals(0, bed.tmdb.getMovieByTitleCalls)
-        assertEquals(0, bed.local.savePopularMoviesCalls)
+        assertEquals(1, bed.tmdb.getMovieByTitleCalls) // Remote is called first
+        assertEquals(1, bed.local.getMovieByTitleCalls) // Local is called after remote returns null
+        assertEquals(0, bed.local.savePopularMoviesCalls) // No save if exception
     }
 
     @Test

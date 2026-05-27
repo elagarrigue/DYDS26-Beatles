@@ -56,7 +56,7 @@ class LocalDataSourceSpy(
     override fun savePopularMovies(movies: List<Movie>) {
         savePopularMoviesCalls++
         lastSavedPopularMovies = movies
-        cachedPopularMovies = movies.takeIf { it.isNotEmpty() }
+        cachedPopularMovies = movies // Corrected: always assign the list, even if empty
     }
 
     override fun getMovieByTitle(title: String): Movie? {
@@ -73,7 +73,7 @@ class LocalDataSourceSpy(
 
 class TMDBMoviesExternalSourceFake(
     private val popularMoviesProvider: () -> List<RemoteMovie> = { emptyList() },
-    private val movieByTitleProvider: (String) -> RemoteMovie = { remoteMovie(0, it) },
+    private val movieByTitleProvider: ((String) -> RemoteMovie?)? = null, // Changed to nullable
     private val shouldThrowOnPopular: Boolean = false,
     private val shouldThrowOnByTitle: Boolean = false,
     private val shouldReturnEmptyResultsOnTitle: Boolean = false,
@@ -91,6 +91,6 @@ class TMDBMoviesExternalSourceFake(
         getMovieByTitleCalls++
         if (shouldThrowOnByTitle) throw IllegalStateException("remote getByTitle error")
         if (shouldReturnEmptyResultsOnTitle) return null
-        return movieByTitleProvider(title)
+        return movieByTitleProvider?.invoke(title) ?: remoteMovie(0, title) // Use invoke or default
     }
 }
