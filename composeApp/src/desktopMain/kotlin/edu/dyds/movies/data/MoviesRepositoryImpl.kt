@@ -2,6 +2,7 @@ package edu.dyds.movies.data
 
 import edu.dyds.movies.data.external.DetailedMovieSource
 import edu.dyds.movies.data.external.PopularMoviesSource
+import edu.dyds.movies.data.external.tmdb.toDomainMovie
 import edu.dyds.movies.data.local.LocalDataSource
 import edu.dyds.movies.domain.entity.Movie
 import edu.dyds.movies.domain.repository.MoviesRepository
@@ -23,8 +24,7 @@ class MoviesRepositoryImpl(
     }
 
     override suspend fun getMovieByTitle(title: String): Movie? {
-        val remoteMovie = detailedMovieSource.getMovieByTitle(title)
-        val enrichedMovie = remoteMovie?.toDomainMovie()
+        val enrichedMovie = detailedMovieSource.getMovieByTitle(title)
 
         if (enrichedMovie != null) {
             val cachedMovies = localDataSource.getPopularMovies()

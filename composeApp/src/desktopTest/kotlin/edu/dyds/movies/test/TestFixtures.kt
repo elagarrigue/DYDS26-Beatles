@@ -3,6 +3,7 @@ package edu.dyds.movies.test
 import edu.dyds.movies.data.external.DetailedMovieSource
 import edu.dyds.movies.data.external.PopularMoviesSource
 import edu.dyds.movies.data.external.RemoteMovie
+import edu.dyds.movies.data.external.tmdb.toDomainMovie
 import edu.dyds.movies.data.local.LocalDataSource
 import edu.dyds.movies.domain.entity.Movie
 
@@ -73,7 +74,7 @@ class LocalDataSourceSpy(
 
 class TMDBMoviesExternalSourceFake(
     private val popularMoviesProvider: () -> List<RemoteMovie> = { emptyList() },
-    private val movieByTitleProvider: ((String) -> RemoteMovie?)? = null,
+    private val movieByTitleProvider: ((String) -> Movie?)? = null,
     private val shouldThrowOnPopular: Boolean = false,
     private val shouldThrowOnByTitle: Boolean = false,
     private val shouldReturnEmptyResultsOnTitle: Boolean = false,
@@ -87,10 +88,10 @@ class TMDBMoviesExternalSourceFake(
         return popularMoviesProvider()
     }
 
-    override suspend fun getMovieByTitle(title: String): RemoteMovie? {
+    override suspend fun getMovieByTitle(title: String): Movie? {
         getMovieByTitleCalls++
         if (shouldThrowOnByTitle) throw IllegalStateException("remote getByTitle error")
         if (shouldReturnEmptyResultsOnTitle) return null
-        return movieByTitleProvider?.invoke(title) ?: remoteMovie(0, title)
+        return movieByTitleProvider?.invoke(title) ?: remoteMovie(0, title).toDomainMovie()
     }
 }

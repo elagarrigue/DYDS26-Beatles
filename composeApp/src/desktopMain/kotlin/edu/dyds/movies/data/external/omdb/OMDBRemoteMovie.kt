@@ -1,6 +1,6 @@
 package edu.dyds.movies.data.external.omdb
 
-import edu.dyds.movies.data.external.RemoteMovie
+import edu.dyds.movies.domain.entity.Movie
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -17,7 +17,7 @@ data class OMDBRemoteMovie(
     @SerialName("Response") val response: String,
 )
 
-internal fun OMDBRemoteMovie.toRemoteMovieOrNull(): RemoteMovie? {
+internal fun OMDBRemoteMovie.toDomainMovieOrNull(): Movie? {
     if (!response.equals("True", ignoreCase = true)) return null
 
     val resolvedTitle = title?.takeIf { it.isNotBlank() } ?: return null
@@ -25,19 +25,19 @@ internal fun OMDBRemoteMovie.toRemoteMovieOrNull(): RemoteMovie? {
     val releaseDate = released.takeUnless { it == null || it == "N/A" } ?: year.orEmpty()
     val resolvedPoster = poster.takeUnless { it == null || it == "N/A" }.orEmpty()
     val resolvedLanguage = language.orEmpty().ifBlank { "unknown" }
+    val resolvedVoteAverage = imdbRating?.toDoubleOrNull() ?: 0.0
+    val resolvedPopularity = metaScore?.toDoubleOrNull()?.div(10.0) ?: 0.0
 
-    return RemoteMovie(
+    return Movie(
         id = resolvedTitle.hashCode(),
         title = resolvedTitle,
         overview = resolvedOverview,
         releaseDate = releaseDate,
-        posterPath = resolvedPoster,
-        backdropPath = resolvedPoster.ifBlank { null },
+        poster = resolvedPoster,
+        backdrop = resolvedPoster.ifBlank { null },
         originalTitle = resolvedTitle,
         originalLanguage = resolvedLanguage,
-        popularity = imdbRating?.toDoubleOrNull() ?: 0.0,
-        voteAverage = metaScore?.toDoubleOrNull() ?: 0.0,
+        popularity = resolvedPopularity,
+        voteAverage = resolvedVoteAverage,
     )
 }
-
-

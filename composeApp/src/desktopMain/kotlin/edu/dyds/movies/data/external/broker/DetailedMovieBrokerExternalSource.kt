@@ -1,7 +1,7 @@
 package edu.dyds.movies.data.external.broker
 
 import edu.dyds.movies.data.external.DetailedMovieSource
-import edu.dyds.movies.data.external.RemoteMovie
+import edu.dyds.movies.domain.entity.Movie
 import kotlinx.coroutines.CancellationException
 
 class DetailedMovieBrokerExternalSource(
@@ -9,7 +9,7 @@ class DetailedMovieBrokerExternalSource(
     private val omdbDetailedMovieSource: DetailedMovieSource,
 ) : DetailedMovieSource {
 
-    override suspend fun getMovieByTitle(title: String): RemoteMovie? {
+    override suspend fun getMovieByTitle(title: String): Movie? {
         val tmdbMovie = safeGetByTitle(tmdbDetailedMovieSource, title)
         val omdbMovie = safeGetByTitle(omdbDetailedMovieSource, title)
 
@@ -24,7 +24,7 @@ class DetailedMovieBrokerExternalSource(
     private suspend fun safeGetByTitle(
         source: DetailedMovieSource,
         title: String,
-    ): RemoteMovie? {
+    ): Movie? {
         return try {
             source.getMovieByTitle(title)
         } catch (exception: CancellationException) {
@@ -35,30 +35,21 @@ class DetailedMovieBrokerExternalSource(
     }
 
     private fun buildCombinedMovie(
-        tmdbMovie: RemoteMovie,
-        omdbMovie: RemoteMovie,
-    ): RemoteMovie {
-        val avgPopularity = calculateAverage(tmdbMovie.popularity, omdbMovie.popularity)
-        val avgVoteAverage = calculateAverage(tmdbMovie.voteAverage, omdbMovie.voteAverage)
-
+        tmdbMovie: Movie,
+        omdbMovie: Movie,
+    ): Movie {
         return tmdbMovie.copy(
             overview = "TMDB: ${tmdbMovie.overview}\n\nOMDB: ${omdbMovie.overview}",
-            popularity = avgPopularity,
-            voteAverage = avgVoteAverage,
+            popularity = calculateAverage(tmdbMovie.popularity, omdbMovie.popularity),
+            voteAverage = calculateAverage(tmdbMovie.voteAverage, omdbMovie.voteAverage),
         )
     }
 
-    private fun calculateAverage(value1: Double?, value2: Double?): Double? {
-        return when {
-            value1 != null && value2 != null -> (value1 + value2) / 2.0
-            value1 != null -> value1
-            value2 != null -> value2
-            else -> null
-        }
+    private fun calculateAverage(value1: Double, value2: Double): Double {
+        return (value1 + value2) / 2.0
     }
 
-    private fun RemoteMovie.withOverviewPrefix(sourceName: String): RemoteMovie {
+    private fun Movie.withOverviewPrefix(sourceName: String): Movie {
         return copy(overview = "$sourceName: $overview")
     }
 }
-

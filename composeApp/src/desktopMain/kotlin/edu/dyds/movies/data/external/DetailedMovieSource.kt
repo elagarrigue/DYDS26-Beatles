@@ -1,6 +1,7 @@
 package edu.dyds.movies.data.external
 
-interface DetailedMovieSource {
-    suspend fun getMovieByTitle(title: String): RemoteMovie?
-}
+import edu.dyds.movies.domain.entity.Movie
 
+interface DetailedMovieSource {
+    suspend fun getMovieByTitle(title: String): Movie?
+}
