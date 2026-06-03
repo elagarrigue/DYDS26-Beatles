@@ -2,7 +2,7 @@ package edu.dyds.movies.test
 
 import edu.dyds.movies.data.external.DetailedMovieSource
 import edu.dyds.movies.data.external.PopularMoviesSource
-import edu.dyds.movies.data.external.RemoteMovie
+import edu.dyds.movies.data.external.tmdb.RemoteMovie
 import edu.dyds.movies.data.external.tmdb.toDomainMovie
 import edu.dyds.movies.data.local.LocalDataSource
 import edu.dyds.movies.domain.entity.Movie

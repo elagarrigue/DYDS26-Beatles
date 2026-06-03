@@ -1,7 +1,8 @@
 package edu.dyds.movies.data
 
-import edu.dyds.movies.data.external.RemoteMovie
+import edu.dyds.movies.data.external.tmdb.RemoteMovie
 import edu.dyds.movies.domain.entity.Movie
+import edu.dyds.movies.data.external.tmdb.toDomainMovie
 import edu.dyds.movies.test.LocalDataSourceSpy
 import edu.dyds.movies.test.TMDBMoviesExternalSourceFake
 import edu.dyds.movies.test.movie
@@ -24,7 +25,7 @@ class MoviesRepositoryImplTest {
     private fun createTestBed(
         localPopularMovies: List<Movie>? = null,
         remotePopularMovies: List<RemoteMovie> = emptyList(),
-        remoteMovieByTitleProvider: (String) -> RemoteMovie = { remoteMovie(0, it) },
+        remoteMovieByTitleProvider: (String) -> Movie = { remoteMovie(0, it).toDomainMovie() },
         shouldThrowOnLocalPopular: Boolean = false,
         shouldThrowOnLocalByTitle: Boolean = false,
         shouldThrowOnRemotePopular: Boolean = false,
@@ -119,7 +120,7 @@ class MoviesRepositoryImplTest {
         val remoteMovieFromBroker = remoteMovie(id = 100, title = "Expected movie")
         val bed = createTestBed(
             localPopularMovies = listOf(cachedMovie),
-            remoteMovieByTitleProvider = { remoteMovieFromBroker }
+            remoteMovieByTitleProvider = { remoteMovieFromBroker.toDomainMovie() }
         )
 
         val result = bed.repository.getMovieByTitle("Expected movie")
@@ -139,7 +140,7 @@ class MoviesRepositoryImplTest {
         val remoteMovieFromBroker = remoteMovie(id = 2, title = targetTitle)
         val bed = createTestBed(
             localPopularMovies = listOf(cachedMovie),
-            remoteMovieByTitleProvider = { remoteMovieFromBroker },
+            remoteMovieByTitleProvider = { remoteMovieFromBroker.toDomainMovie() },
         )
 
         val result = bed.repository.getMovieByTitle(targetTitle)
@@ -161,7 +162,7 @@ class MoviesRepositoryImplTest {
         val remoteMovieFromBroker = remoteMovie(id = 1, title = targetTitle)
         val bed = createTestBed(
             localPopularMovies = emptyList(),
-            remoteMovieByTitleProvider = { remoteMovieFromBroker },
+            remoteMovieByTitleProvider = { remoteMovieFromBroker.toDomainMovie() },
         )
 
         val result = bed.repository.getMovieByTitle(targetTitle)
@@ -180,7 +181,7 @@ class MoviesRepositoryImplTest {
         val remoteMovieFromBroker = remoteMovie(id = 1, title = targetTitle)
         val bed = createTestBed(
             localPopularMovies = null,
-            remoteMovieByTitleProvider = { remoteMovieFromBroker },
+            remoteMovieByTitleProvider = { remoteMovieFromBroker.toDomainMovie() },
         )
 
         val result = bed.repository.getMovieByTitle(targetTitle)
@@ -208,7 +209,7 @@ class MoviesRepositoryImplTest {
         )
         val bed = createTestBed(
             localPopularMovies = null,
-            remoteMovieByTitleProvider = { remoteDetail },
+            remoteMovieByTitleProvider = { remoteDetail.toDomainMovie() },
         )
 
         val result = bed.repository.getMovieByTitle("Test Movie")
@@ -240,7 +241,7 @@ class MoviesRepositoryImplTest {
         val remoteMovieFromBroker = remoteMovie(id = 100, title = "Movie 99")
         val bed = createTestBed(
             localPopularMovies = listOf(cachedMovie, cachedMovie99),
-            remoteMovieByTitleProvider = { remoteMovieFromBroker },
+            remoteMovieByTitleProvider = { remoteMovieFromBroker.toDomainMovie() },
         )
 
         val result = bed.repository.getMovieByTitle("Movie 99")

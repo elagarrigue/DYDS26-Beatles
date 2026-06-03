@@ -1,7 +1,7 @@
 package edu.dyds.movies.data.external.broker
 
-import edu.dyds.movies.data.external.DetailedMovieSource
-import edu.dyds.movies.data.external.RemoteMovie
+import edu.dyds.movies.domain.entity.Movie
+import edu.dyds.movies.test.fakes.FakeDetailedMovieSource
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -12,31 +12,31 @@ import java.util.concurrent.CancellationException
 
 class DetailedMovieBrokerExternalSourceTest {
 
-    private lateinit var tmdbMovie: RemoteMovie
-    private lateinit var omdbMovie: RemoteMovie
+    private lateinit var tmdbMovie: Movie
+    private lateinit var omdbMovie: Movie
 
     @BeforeTest
     fun setUp() {
-        tmdbMovie = RemoteMovie(
+        tmdbMovie = Movie(
             id = 1,
             title = "Inception",
             overview = "Dreams inside dreams.",
             releaseDate = "2010-07-16",
-            posterPath = "/inception.jpg",
-            backdropPath = "/inception_backdrop.jpg",
+            poster = "https://image.tmdb.org/t/p/w185/inception.jpg",
+            backdrop = "https://image.tmdb.org/t/p/w185/inception_backdrop.jpg",
             originalTitle = "Inception",
             originalLanguage = "en",
             popularity = 90.0,
             voteAverage = 8.0,
         )
 
-        omdbMovie = RemoteMovie(
+        omdbMovie = Movie(
             id = 10,
             title = "Inception",
             overview = "A thief who steals corporate secrets.",
             releaseDate = "16 Jul 2010",
-            posterPath = "https://img.omdb/inception.jpg",
-            backdropPath = "https://img.omdb/inception.jpg",
+            poster = "https://img.omdb/inception.jpg",
+            backdrop = "https://img.omdb/inception.jpg",
             originalTitle = "Inception",
             originalLanguage = "English",
             popularity = 80.0,
@@ -130,9 +130,4 @@ class DetailedMovieBrokerExternalSourceTest {
         }
     }
 
-    private class FakeDetailedMovieSource(
-        private val provider: suspend (String) -> RemoteMovie?,
-    ) : DetailedMovieSource {
-        override suspend fun getMovieByTitle(title: String): RemoteMovie? = provider(title)
-    }
 }

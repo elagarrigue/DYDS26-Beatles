@@ -61,11 +61,11 @@ class OMDBMoviesExternalSourceTest {
         assertEquals("The Matrix", result.title)
         assertEquals("A hacker discovers reality.", result.overview)
         assertEquals("31 Mar 1999", result.releaseDate)
-        assertEquals("https://img.omdb/matrix.jpg", result.posterPath)
-        assertEquals("https://img.omdb/matrix.jpg", result.backdropPath)
+        assertEquals("https://img.omdb/matrix.jpg", result.poster)
+        assertEquals("https://img.omdb/matrix.jpg", result.backdrop)
         assertEquals("English", result.originalLanguage)
-        assertEquals(8.7, result.popularity)
-        assertEquals(73.0, result.voteAverage)
+        assertEquals(7.3, result.popularity)
+        assertEquals(8.7, result.voteAverage)
     }
 
     @Test
@@ -101,8 +101,8 @@ class OMDBMoviesExternalSourceTest {
         assertEquals("Movie NA", result.title)
         assertEquals("N/A", result.overview)
         assertEquals("2001", result.releaseDate)
-        assertEquals("", result.posterPath)
-        assertEquals(null, result.backdropPath)
+        assertEquals("", result.poster)
+        assertEquals(null, result.backdrop)
         assertEquals("unknown", result.originalLanguage)
         assertEquals(0.0, result.popularity)
         assertEquals(0.0, result.voteAverage)

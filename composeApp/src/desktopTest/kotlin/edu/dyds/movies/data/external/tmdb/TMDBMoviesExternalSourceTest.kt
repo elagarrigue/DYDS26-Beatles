@@ -1,8 +1,7 @@
 package edu.dyds.movies.data.external.tmdb
 
-import edu.dyds.movies.data.external.RemoteMovie
-import edu.dyds.movies.data.external.RemoteResult
 import edu.dyds.movies.test.remoteMovie
+import edu.dyds.movies.data.external.tmdb.toDomainMovie
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -108,7 +107,7 @@ class TMDBMoviesExternalSourceTest {
 
         val result = TMDBMoviesExternalSource(httpClient).getMovieByTitle("Expected Movie")
 
-        assertEquals(expectedMovie, result)
+        assertEquals(expectedMovie.toDomainMovie(), result)
     }
 
     @Test
@@ -139,8 +138,8 @@ class TMDBMoviesExternalSourceTest {
         assertEquals("Test Movie", result.title)
         assertEquals("Test overview", result.overview)
         assertEquals("2026-05-21", result.releaseDate)
-        assertEquals("/test_poster.jpg", result.posterPath)
-        assertEquals("/test_backdrop.jpg", result.backdropPath)
+        assertEquals("https://image.tmdb.org/t/p/w185/test_poster.jpg", result.poster)
+        assertEquals("https://image.tmdb.org/t/p/w185/test_backdrop.jpg", result.backdrop)
         assertEquals("Película de Prueba", result.originalTitle)
         assertEquals("es", result.originalLanguage)
         assertEquals(42.5, result.popularity)
@@ -172,7 +171,7 @@ class TMDBMoviesExternalSourceTest {
         val result = TMDBMoviesExternalSource(httpClient).getMovieByTitle("No Backdrop Movie")
 
         assertNotNull(result)
-        assertEquals(null, result.backdropPath)
+        assertEquals(null, result.backdrop)
     }
 
     @Test
