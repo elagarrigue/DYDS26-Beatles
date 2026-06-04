@@ -1,7 +1,8 @@
 package edu.dyds.movies.data.external
 
-interface RemoteDataSource {
+import edu.dyds.movies.data.external.tmdb.RemoteMovie
+
+interface PopularMoviesSource {
     suspend fun getPopularMovies(): List<RemoteMovie>
-    suspend fun getMovieDetails(id: Int): RemoteMovie
 }
 

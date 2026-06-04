@@ -15,8 +15,7 @@ class LocalDataSourceImpl : LocalDataSource {
         cacheMovies.addAll(movies)
     }
 
-    override fun getMovieDetails(id: Int): Movie? {
-        return cacheMovies.firstOrNull { it.id == id }
+    override fun getMovieByTitle(title: String): Movie? {
+        return cacheMovies.firstOrNull { it.title == title }
     }
 }
-

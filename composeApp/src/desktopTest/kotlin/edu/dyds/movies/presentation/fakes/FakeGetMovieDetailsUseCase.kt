@@ -4,7 +4,7 @@ import edu.dyds.movies.domain.entity.Movie
 import edu.dyds.movies.domain.usecase.GetMovieDetailsUseCase
 
 class FakeGetMovieDetailsUseCase(
-    private val behaviour: suspend (Int) -> Movie?,
+    private val behaviour: suspend (String) -> Movie?,
 ) : GetMovieDetailsUseCase {
-    override suspend fun execute(id: Int): Movie? = behaviour(id)
+    override suspend fun execute(title: String): Movie? = behaviour(title)
 }

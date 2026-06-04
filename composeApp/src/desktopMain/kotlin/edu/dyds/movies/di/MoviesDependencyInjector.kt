@@ -2,9 +2,11 @@ package edu.dyds.movies.di
 
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
+import edu.dyds.movies.config.AppConfig
 import edu.dyds.movies.data.MoviesRepositoryImpl
-import edu.dyds.movies.data.external.RemoteDataSource
-import edu.dyds.movies.data.external.RemoteDataSourceImpl
+import edu.dyds.movies.data.external.broker.DetailedMovieBrokerExternalSource
+import edu.dyds.movies.data.external.omdb.OMDBMoviesExternalSource
+import edu.dyds.movies.data.external.tmdb.TMDBMoviesExternalSource
 import edu.dyds.movies.data.local.LocalDataSource
 import edu.dyds.movies.data.local.LocalDataSourceImpl
 import edu.dyds.movies.domain.usecase.GetMovieDetailsUseCase
@@ -20,8 +22,6 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 
-private const val API_KEY = "d18da1b5da16397619c688b0263cd281"
-
 object MoviesDependencyInjector {
 
     private val tmdbHttpClient =
@@ -33,23 +33,46 @@ object MoviesDependencyInjector {
             }
             install(DefaultRequest) {
                 url {
-                    protocol = URLProtocol.HTTPS
-                    host = "api.themoviedb.org"
-                    parameters.append("api_key", API_KEY)
+                    takeFrom(AppConfig.TMDB_BASE_URL)
+                    parameters.append("api_key", AppConfig.TMDB_API_KEY)
                 }
             }
             install(HttpTimeout) {
-                requestTimeoutMillis = 5000
+                requestTimeoutMillis = AppConfig.TMDB_REQUEST_TIMEOUT_MS
+            }
+        }
+
+    private val omdbHttpClient =
+        HttpClient {
+            install(ContentNegotiation) {
+                json(Json {
+                    ignoreUnknownKeys = true
+                })
+            }
+            install(DefaultRequest) {
+                url {
+                    takeFrom(AppConfig.OMDB_BASE_URL)
+                    parameters.append("apikey", AppConfig.OMDB_API_KEY)
+                }
+            }
+            install(HttpTimeout) {
+                requestTimeoutMillis = AppConfig.OMDB_REQUEST_TIMEOUT_MS
             }
         }
 
     private val localDataSource: LocalDataSource = LocalDataSourceImpl()
 
-    private val remoteDataSource: RemoteDataSource = RemoteDataSourceImpl(tmdbHttpClient)
+    private val tmdbMoviesExternalSource = TMDBMoviesExternalSource(tmdbHttpClient)
+    private val omdbMoviesExternalSource = OMDBMoviesExternalSource(omdbHttpClient)
+    private val detailedMovieBroker = DetailedMovieBrokerExternalSource(
+        tmdbDetailedMovieSource = tmdbMoviesExternalSource,
+        omdbDetailedMovieSource = omdbMoviesExternalSource,
+    )
 
     private val moviesRepository = MoviesRepositoryImpl(
         localDataSource = localDataSource,
-        remoteDataSource = remoteDataSource,
+        popularMoviesSource = tmdbMoviesExternalSource,
+        detailedMovieSource = detailedMovieBroker,
     )
 
     private val getPopularMoviesUseCase: GetPopularMoviesUseCase = GetPopularMoviesUseCaseImpl(moviesRepository)

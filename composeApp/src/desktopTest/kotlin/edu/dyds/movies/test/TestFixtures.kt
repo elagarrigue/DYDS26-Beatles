@@ -1,7 +1,9 @@
 package edu.dyds.movies.test
 
-import edu.dyds.movies.data.external.RemoteDataSource
-import edu.dyds.movies.data.external.RemoteMovie
+import edu.dyds.movies.data.external.DetailedMovieSource
+import edu.dyds.movies.data.external.PopularMoviesSource
+import edu.dyds.movies.data.external.tmdb.RemoteMovie
+import edu.dyds.movies.data.external.tmdb.toDomainMovie
 import edu.dyds.movies.data.local.LocalDataSource
 import edu.dyds.movies.domain.entity.Movie
 
@@ -20,10 +22,10 @@ fun movie(id: Int, title: String = "Movie $id"): Movie {
     )
 }
 
-fun remoteMovie(id: Int): RemoteMovie {
+fun remoteMovie(id: Int, title: String = "Remote Movie $id"): RemoteMovie {
     return RemoteMovie(
         id = id,
-        title = "Remote Movie $id",
+        title = title,
         overview = "Remote overview $id",
         releaseDate = "2026-01-01",
         posterPath = "/poster$id.jpg",
@@ -38,12 +40,11 @@ fun remoteMovie(id: Int): RemoteMovie {
 class LocalDataSourceSpy(
     var cachedPopularMovies: List<Movie>? = null,
     private val shouldThrowOnGetPopular: Boolean = false,
-    private val shouldThrowOnGetDetails: Boolean = false,
-    private val detailsCache: Map<Int, Movie> = emptyMap(),
+    private val shouldThrowOnGetByTitle: Boolean = false,
 ) : LocalDataSource {
     var getPopularMoviesCalls = 0
     var savePopularMoviesCalls = 0
-    var getMovieDetailsCalls = 0
+    var getMovieByTitleCalls = 0
     var lastSavedPopularMovies: List<Movie>? = null
         private set
 
@@ -56,13 +57,13 @@ class LocalDataSourceSpy(
     override fun savePopularMovies(movies: List<Movie>) {
         savePopularMoviesCalls++
         lastSavedPopularMovies = movies
-        cachedPopularMovies = movies.takeIf { it.isNotEmpty() }
+        cachedPopularMovies = movies
     }
 
-    override fun getMovieDetails(id: Int): Movie? {
-        getMovieDetailsCalls++
-        if (shouldThrowOnGetDetails) throw IllegalStateException("local getDetails error")
-        return detailsCache[id] ?: cachedPopularMovies?.firstOrNull { it.id == id }
+    override fun getMovieByTitle(title: String): Movie? {
+        getMovieByTitleCalls++
+        if (shouldThrowOnGetByTitle) throw IllegalStateException("local getByTitle error")
+        return cachedPopularMovies?.firstOrNull { it.title == title }
     }
 
     fun hasNoDuplicateIds(): Boolean {
@@ -71,14 +72,15 @@ class LocalDataSourceSpy(
     }
 }
 
-class RemoteDataSourceFake(
+class TMDBMoviesExternalSourceFake(
     private val popularMoviesProvider: () -> List<RemoteMovie> = { emptyList() },
-    private val movieDetailsProvider: (Int) -> RemoteMovie = { remoteMovie(it) },
+    private val movieByTitleProvider: ((String) -> Movie?)? = null,
     private val shouldThrowOnPopular: Boolean = false,
-    private val shouldThrowOnDetails: Boolean = false,
-) : RemoteDataSource {
+    private val shouldThrowOnByTitle: Boolean = false,
+    private val shouldReturnEmptyResultsOnTitle: Boolean = false,
+) : PopularMoviesSource, DetailedMovieSource {
     var getPopularMoviesCalls = 0
-    var getMovieDetailsCalls = 0
+    var getMovieByTitleCalls = 0
 
     override suspend fun getPopularMovies(): List<RemoteMovie> {
         getPopularMoviesCalls++
@@ -86,12 +88,10 @@ class RemoteDataSourceFake(
         return popularMoviesProvider()
     }
 
-    override suspend fun getMovieDetails(id: Int): RemoteMovie {
-        getMovieDetailsCalls++
-        if (shouldThrowOnDetails) throw IllegalStateException("remote getDetails error")
-        return movieDetailsProvider(id)
+    override suspend fun getMovieByTitle(title: String): Movie? {
+        getMovieByTitleCalls++
+        if (shouldThrowOnByTitle) throw IllegalStateException("remote getByTitle error")
+        if (shouldReturnEmptyResultsOnTitle) return null
+        return movieByTitleProvider?.invoke(title) ?: remoteMovie(0, title).toDomainMovie()
     }
 }
-
-
-

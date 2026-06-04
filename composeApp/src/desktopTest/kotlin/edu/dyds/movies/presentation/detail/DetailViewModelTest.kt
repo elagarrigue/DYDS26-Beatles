@@ -38,19 +38,19 @@ class DetailViewModelTest {
     }
 
     @Test
-    fun `getMovieDetail delegates requested id and stores returned movie`() = runTest {
+    fun `getMovieDetail delegates requested title and stores returned movie`() = runTest {
 
-        val expectedMovie = movie(id = 10, title = "Title")
-        val requestedIds = arrayListOf<Int>()
-        val useCase = FakeGetMovieDetailsUseCase { id ->
-            requestedIds += id
-            if (id == expectedMovie.id) expectedMovie else null
+        val expectedMovie = movie(id = 10, title = "Inception")
+        val requestedTitles = arrayListOf<String>()
+        val useCase = FakeGetMovieDetailsUseCase { title ->
+            requestedTitles += title
+            if (title == expectedMovie.title) expectedMovie else null
         }
         val viewModel = DetailViewModel(useCase)
 
-        viewModel.getMovieDetail(expectedMovie.id)
+        viewModel.getMovieDetail(expectedMovie.title)
 
-        assertEquals(listOf(expectedMovie.id), requestedIds)
+        assertEquals(listOf(expectedMovie.title), requestedTitles)
 
         assertEquals(
             DetailViewModel.MovieDetailUiState(movie = expectedMovie),
@@ -61,16 +61,16 @@ class DetailViewModelTest {
     @Test
     fun `getMovieDetail keeps empty state when repository returns null`() = runTest {
 
-        val requestedIds = arrayListOf<Int>()
-        val useCase = FakeGetMovieDetailsUseCase { id ->
-            requestedIds += id
+        val requestedTitles = arrayListOf<String>()
+        val useCase = FakeGetMovieDetailsUseCase { title ->
+            requestedTitles += title
             null
         }
         val viewModel = DetailViewModel(useCase)
 
-        viewModel.getMovieDetail(99)
+        viewModel.getMovieDetail("NonExistentMovie")
 
-        assertEquals(listOf(99), requestedIds)
+        assertEquals(listOf("NonExistentMovie"), requestedTitles)
 
         assertEquals(DetailViewModel.MovieDetailUiState(), viewModel.movieDetailStateFlow.value)
     }
